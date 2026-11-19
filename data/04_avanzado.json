@@ -1,0 +1,367 @@
+{
+  "nivel": "Avanzado",
+  "descripcion": "Los problemas de entrevista más preguntados (estilo NeetCode 150 / LeetCode medium-hard): arrays, hashmaps, two pointers, sliding window, binary search, backtracking, DP, grafos y diseño de estructuras.",
+  "ejercicios": [
+    {
+      "id": "a01",
+      "tipo": "codigo",
+      "titulo": "Máximo subarray (Kadane)",
+      "dificultad": "extra",
+      "tema": "arrays / DP",
+      "roadmap": "Extra difícil: Kadane (máximo subarray)",
+      "enunciado": "Dada una lista de enteros `nums` (pueden ser negativos), devuelve la mayor suma posible de un subarray contiguo no vacío.\nSi la lista está vacía devuelve `0`.\n\nEjemplos:\n`max_subarray([-2, 1, -3, 4, -1, 2, 1, -5, 4])` -> `6` (el subarray `[4, -1, 2, 1]`)\n`max_subarray([-3, -1, -2])` -> `-1`",
+      "pistas": [
+        "Pregunta clave: en cada posición, ¿conviene extender el subarray anterior o empezar uno nuevo aquí?",
+        "Mantén dos variables: la mejor suma que TERMINA en el elemento actual y la mejor global.",
+        "actual = max(x, actual + x); mejor = max(mejor, actual). Inicializa con nums[0], no con 0 (por los negativos)."
+      ],
+      "plantilla": "def max_subarray(nums):\n    # tu código aquí\n    pass\n",
+      "tests": "assert max_subarray([-2, 1, -3, 4, -1, 2, 1, -5, 4]) == 6\nassert max_subarray([1]) == 1, \"un elemento\"\nassert max_subarray([-5]) == -5, \"un solo negativo\"\nassert max_subarray([-3, -1, -2]) == -1, \"todos negativos: no devolver 0\"\nassert max_subarray([5, 4, -1, 7, 8]) == 23, \"todo el array\"\nassert max_subarray([]) == 0, \"vacío\"\nassert max_subarray([0, 0, 0]) == 0\nassert max_subarray([-1, 2, -1, 2, -1]) == 3\n",
+      "solucion": "def max_subarray(nums):\n    if not nums:\n        return 0\n    actual = mejor = nums[0]\n    for x in nums[1:]:\n        actual = max(x, actual + x)   # extender o empezar de nuevo\n        mejor = max(mejor, actual)\n    return mejor\n",
+      "explicacion": "1) Ingenua: probar todos los pares (i, j) y sumar -> O(n^3); con sumas prefijas O(n^2) tiempo, O(1) espacio.\n2) Óptima (Kadane, programación dinámica): la mejor suma que termina en i es max(nums[i], mejor_que_termina_en_i-1 + nums[i]). Si lo anterior es negativo, solo estorba y se descarta. Solo hace falta recordar un número, no una tabla: trade-off, ganamos espacio sin perder nada.\n3) Final: O(n) tiempo, O(1) espacio, una sola pasada (sirve en streaming).\nTrampa típica: inicializar con 0 rompe el caso de todos negativos.",
+      "pregunta_entrevistador": "Ahora devuélveme también los índices (inicio, fin) del subarray. ¿Y si los datos llegan en streaming y no caben en memoria? (Kadane ya es una pasada con O(1): solo guardas inicio_actual, y actualizas inicio/fin cuando mejoras el máximo; cuando 'actual' es peor que empezar de nuevo, inicio_actual = i.) Variante: ¿y el máximo subarray circular?"
+    },
+    {
+      "id": "a02",
+      "tipo": "codigo",
+      "titulo": "Merge de dos arrays ordenados",
+      "dificultad": "dificil",
+      "tema": "two pointers",
+      "roadmap": "Extra difícil: merge de dos arrays ordenados",
+      "enunciado": "Dadas dos listas `a` y `b` ya ordenadas de menor a mayor, devuelve una nueva lista ordenada con todos sus elementos en O(n + m). No uses `sorted()` ni `sort()` sobre el resultado y no modifiques las listas originales.\n\nEjemplos:\n`merge_ordenados([1, 3, 5], [2, 4, 6])` -> `[1, 2, 3, 4, 5, 6]`\n`merge_ordenados([], [7])` -> `[7]`",
+      "pistas": [
+        "Usa dos índices, uno por lista, y compara los elementos actuales.",
+        "Copia el menor y avanza solo ese índice. Cuando una lista se acabe, ¿qué queda?",
+        "Al terminar el bucle, extiende el resultado con lo que sobre de a[i:] y b[j:]. Usa <= para que sea estable con duplicados."
+      ],
+      "plantilla": "def merge_ordenados(a, b):\n    # tu código aquí\n    pass\n",
+      "tests": "assert merge_ordenados([1, 3, 5], [2, 4, 6]) == [1, 2, 3, 4, 5, 6]\nassert merge_ordenados([], []) == [], \"ambas vacías\"\nassert merge_ordenados([], [7]) == [7]\nassert merge_ordenados([7], []) == [7]\nassert merge_ordenados([1, 1, 2], [1, 3]) == [1, 1, 1, 2, 3], \"duplicados\"\nassert merge_ordenados([-5, -1, 0], [-3, 2]) == [-5, -3, -1, 0, 2], \"negativos\"\nassert merge_ordenados([1, 2, 3], [10, 20]) == [1, 2, 3, 10, 20], \"una lista entera antes\"\nx, y = [1, 4], [2, 3]\nmerge_ordenados(x, y)\nassert x == [1, 4] and y == [2, 3], \"no debe modificar las entradas\"\n",
+      "solucion": "def merge_ordenados(a, b):\n    i = j = 0\n    res = []\n    while i < len(a) and j < len(b):\n        if a[i] <= b[j]:\n            res.append(a[i])\n            i += 1\n        else:\n            res.append(b[j])\n            j += 1\n    res.extend(a[i:])\n    res.extend(b[j:])\n    return res\n",
+      "explicacion": "1) Ingenua: concatenar y ordenar -> O((n+m) log(n+m)); ignora que ya vienen ordenadas.\n2) Óptima: dos punteros. El menor de los dos 'frentes' es siempre el siguiente del resultado. Cada elemento se mira una vez. Trade-off: usa O(n+m) de memoria extra para el resultado (se puede hacer in-place si una lista tiene espacio libre al final, rellenando desde atrás).\n3) Final: O(n+m) tiempo, O(n+m) espacio. Es exactamente el paso 'merge' de merge sort.",
+      "pregunta_entrevistador": "¿Y si tienes k listas ordenadas en vez de 2? (heapq.merge o un min-heap con k elementos: O(N log k)). ¿Y si no caben en memoria? (merge externo: lees por bloques de cada archivo y escribes en streaming; heapq.merge es perezoso). ¿Y hacerlo in-place en `a` que tiene hueco al final? (punteros desde atrás)."
+    },
+    {
+      "id": "a03",
+      "tipo": "codigo",
+      "titulo": "Merge de intervalos",
+      "dificultad": "dificil",
+      "tema": "ordenar + barrido",
+      "roadmap": "Extra difícil: problemas de entrevista (intervalos)",
+      "enunciado": "Dada una lista de intervalos `[inicio, fin]` (sin orden), fusiona los que se solapen o se toquen (`[1,4]` y `[4,5]` se fusionan) y devuelve la lista de intervalos disjuntos ordenada por inicio.\n\nEjemplos:\n`merge_intervalos([[1,3],[2,6],[8,10],[15,18]])` -> `[[1,6],[8,10],[15,18]]`\n`merge_intervalos([[1,4],[4,5]])` -> `[[1,5]]`",
+      "pistas": [
+        "Si los ordenas por inicio, los que se solapan quedan consecutivos.",
+        "Recorre y compara el inicio del actual con el fin del último intervalo del resultado.",
+        "Si inicio <= fin_ultimo: fin_ultimo = max(fin_ultimo, fin). Si no, añade uno nuevo. Ojo con [1,4] y [2,3] (uno contiene al otro)."
+      ],
+      "plantilla": "def merge_intervalos(intervalos):\n    # tu código aquí\n    pass\n",
+      "tests": "assert merge_intervalos([[1, 3], [2, 6], [8, 10], [15, 18]]) == [[1, 6], [8, 10], [15, 18]]\nassert merge_intervalos([[1, 4], [4, 5]]) == [[1, 5]], \"se tocan en el borde\"\nassert merge_intervalos([]) == [], \"vacío\"\nassert merge_intervalos([[3, 4]]) == [[3, 4]], \"un elemento\"\nassert merge_intervalos([[1, 4], [2, 3]]) == [[1, 4]], \"uno contenido en otro\"\nassert merge_intervalos([[5, 6], [1, 2]]) == [[1, 2], [5, 6]], \"sin ordenar\"\nassert merge_intervalos([[-5, -2], [-3, 1]]) == [[-5, 1]], \"negativos\"\nassert merge_intervalos([[1, 10], [2, 3], [4, 5], [6, 12]]) == [[1, 12]]\n",
+      "solucion": "def merge_intervalos(intervalos):\n    res = []\n    for ini, fin in sorted(intervalos):\n        if res and ini <= res[-1][1]:\n            res[-1][1] = max(res[-1][1], fin)\n        else:\n            res.append([ini, fin])\n    return res\n",
+      "explicacion": "1) Ingenua: comparar cada intervalo con todos los demás y repetir hasta que no haya fusiones -> O(n^2) o peor.\n2) Óptima: ordenar por inicio. Tras ordenar, un intervalo solo puede solaparse con el último del resultado, así que basta un barrido. Trade-off: pagamos el sort (O(n log n)) para simplificar todo lo demás.\n3) Final: O(n log n) tiempo (domina el sort), O(n) espacio para el resultado. Detalle: el max() en el fin es lo que cubre el caso de contención.",
+      "pregunta_entrevistador": "¿Y si los intervalos llegan en streaming y debes mantener la lista fusionada? (estructura ordenada + bisect; o un árbol de intervalos). Variante: ¿cuál es el mínimo de salas de reuniones necesarias? (ordenar inicios y fines por separado, o heap de fines)."
+    },
+    {
+      "id": "a04",
+      "tipo": "codigo",
+      "titulo": "Agrupar anagramas",
+      "dificultad": "dificil",
+      "tema": "hashmap",
+      "roadmap": "Anagrama válido (hashmap) -> agrupar",
+      "enunciado": "Dada una lista de palabras, agrúpalas en listas de anagramas. Devuelve una lista de grupos (el orden de grupos y de palabras dentro de cada grupo no importa).\n\nEjemplos:\n`agrupar_anagramas([\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"])` -> `[[\"eat\",\"tea\",\"ate\"],[\"tan\",\"nat\"],[\"bat\"]]`\n`agrupar_anagramas([\"\"])` -> `[[\"\"]]`",
+      "pistas": [
+        "Dos palabras son anagramas si tienen las mismas letras. ¿Qué 'firma' común podrían compartir?",
+        "Usa como clave del dict las letras ordenadas, pero ojo: las listas no son hashables, convierte a tupla o string.",
+        "defaultdict(list); clave = tuple(sorted(palabra)); al final devuelve list(d.values())."
+      ],
+      "plantilla": "def agrupar_anagramas(palabras):\n    # tu código aquí\n    pass\n",
+      "tests": "def norm(r):\n    return sorted(sorted(g) for g in r)\n\nassert norm(agrupar_anagramas([\"eat\", \"tea\", \"tan\", \"ate\", \"nat\", \"bat\"])) == [[\"ate\", \"eat\", \"tea\"], [\"bat\"], [\"nat\", \"tan\"]]\nassert norm(agrupar_anagramas([\"\"])) == [[\"\"]], \"cadena vacía\"\nassert norm(agrupar_anagramas([])) == [], \"lista vacía\"\nassert norm(agrupar_anagramas([\"a\"])) == [[\"a\"]], \"un elemento\"\nassert norm(agrupar_anagramas([\"ab\", \"ba\", \"ab\"])) == [[\"ab\", \"ab\", \"ba\"]], \"duplicados se conservan\"\nassert norm(agrupar_anagramas([\"abc\", \"def\"])) == [[\"abc\"], [\"def\"]], \"sin anagramas\"\nassert norm(agrupar_anagramas([\"\", \"\", \"a\"])) == [[\"\", \"\"], [\"a\"]]\n",
+      "solucion": "from collections import defaultdict\n\ndef agrupar_anagramas(palabras):\n    grupos = defaultdict(list)\n    for p in palabras:\n        grupos[tuple(sorted(p))].append(p)\n    return list(grupos.values())\n",
+      "explicacion": "1) Ingenua: comparar cada palabra con todas las demás (cada comparación ordena o cuenta) -> O(n^2 * k log k).\n2) Mejor: una clave canónica por palabra. Ordenar las letras da la misma clave a todos los anagramas -> O(n * k log k), con k = longitud máxima. Alternativa: clave = tupla de 26 conteos -> O(n * k) pero más verbosa. Trade-off: más memoria (el dict) a cambio de pasar de cuadrático a lineal en n.\n3) Final: O(n * k log k) tiempo, O(n * k) espacio.",
+      "pregunta_entrevistador": "¿Cómo lo haces en O(n*k) sin ordenar? (clave = tupla de conteos de 26 letras). ¿Y si el alfabeto es Unicode? (Counter -> frozenset de items, o tupla ordenada de items). ¿Y si hay millones de palabras que no caben en memoria? (particionar por hash de la clave en archivos y agrupar cada partición)."
+    },
+    {
+      "id": "a05",
+      "tipo": "codigo",
+      "titulo": "Top K elementos más frecuentes",
+      "dificultad": "dificil",
+      "tema": "hashmap / heap / bucket sort",
+      "roadmap": "Hashmap para contar + heap/bucket",
+      "enunciado": "Dada una lista de enteros `nums` y un entero `k`, devuelve los `k` elementos más frecuentes (en cualquier orden). Se garantiza que la respuesta es única (no hay empates en el corte).\n\nEjemplos:\n`top_k_frecuentes([1,1,1,2,2,3], 2)` -> `[1, 2]`\n`top_k_frecuentes([1], 1)` -> `[1]`",
+      "pistas": [
+        "Primero cuenta cuántas veces aparece cada número (Counter).",
+        "Ordenar todo es O(n log n). Piensa en un heap de tamaño k, o en 'buckets' indexados por frecuencia.",
+        "Bucket sort: buckets[f] = lista de números con frecuencia f (f va de 1 a n). Recorre de mayor a menor frecuencia hasta juntar k."
+      ],
+      "plantilla": "def top_k_frecuentes(nums, k):\n    # tu código aquí\n    pass\n",
+      "tests": "assert sorted(top_k_frecuentes([1, 1, 1, 2, 2, 3], 2)) == [1, 2]\nassert top_k_frecuentes([1], 1) == [1], \"un elemento\"\nassert top_k_frecuentes([], 3) == [], \"vacío\"\nassert sorted(top_k_frecuentes([-1, -1, 2, 2, 2, 3], 1)) == [2], \"negativos y k=1\"\nassert sorted(top_k_frecuentes([4, 4, 4, 5, 5, 6], 3)) == [4, 5, 6], \"k = cantidad de distintos\"\nassert sorted(top_k_frecuentes([1, 2], 5)) == [1, 2], \"k mayor que distintos\"\nassert sorted(top_k_frecuentes([7, 7, 8, 8, 8, 9, 9, 9, 9], 2)) == [8, 9]\nassert top_k_frecuentes([1, 2, 3], 0) == [], \"k = 0\"\n",
+      "solucion": "from collections import Counter\n\ndef top_k_frecuentes(nums, k):\n    if k <= 0 or not nums:\n        return []\n    conteo = Counter(nums)\n    buckets = [[] for _ in range(len(nums) + 1)]   # buckets[f] = números con frecuencia f\n    for num, f in conteo.items():\n        buckets[f].append(num)\n    res = []\n    for f in range(len(buckets) - 1, 0, -1):\n        for num in buckets[f]:\n            res.append(num)\n            if len(res) == k:\n                return res\n    return res\n",
+      "explicacion": "1) Ingenua: contar y ordenar todos los pares por frecuencia -> O(n log n).\n2) Mejor A: heap de tamaño k (heapq.nlargest(k, conteo, key=conteo.get)) -> O(n log k), O(n) espacio. Mejor B: bucket sort, porque la frecuencia máxima es n: se indexa por frecuencia y se recorre de mayor a menor -> O(n). Trade-off: bucket usa un array de tamaño n+1 pero evita el log; el heap es mejor cuando k es pequeño y n enorme (en streaming).\n3) Final: O(n) tiempo y O(n) espacio con buckets; O(n log k) con heap.",
+      "pregunta_entrevistador": "¿Y si el stream es infinito y no cabe el Counter? (algoritmos aproximados: Count-Min Sketch + heap, o Misra-Gries / Space-Saving). ¿Y si hay empates en el corte? (definir criterio de desempate, p. ej. por valor)."
+    },
+    {
+      "id": "a06",
+      "tipo": "codigo",
+      "titulo": "Producto de array excepto uno mismo",
+      "dificultad": "extra",
+      "tema": "prefijos / sufijos",
+      "roadmap": "Extra difícil: product of array except self",
+      "enunciado": "Dada una lista `nums`, devuelve una lista `res` donde `res[i]` es el producto de todos los elementos de `nums` excepto `nums[i]`. NO uses división. Debe correr en O(n).\n\nEjemplos:\n`producto_sin_self([1, 2, 3, 4])` -> `[24, 12, 8, 6]`\n`producto_sin_self([-1, 1, 0, -3, 3])` -> `[0, 0, 9, 0, 0]`",
+      "pistas": [
+        "Para cada i necesitas (producto de todo lo que está a la izquierda) * (producto de todo lo que está a la derecha).",
+        "Haz una pasada de izquierda a derecha guardando en res[i] el producto de los previos.",
+        "Haz una segunda pasada de derecha a izquierda con una variable `derecha` acumulada y multiplica res[i] por ella."
+      ],
+      "plantilla": "def producto_sin_self(nums):\n    # tu código aquí\n    pass\n",
+      "tests": "assert producto_sin_self([1, 2, 3, 4]) == [24, 12, 8, 6]\nassert producto_sin_self([-1, 1, 0, -3, 3]) == [0, 0, 9, 0, 0], \"un cero\"\nassert producto_sin_self([0, 0, 2]) == [0, 0, 0], \"dos ceros\"\nassert producto_sin_self([2, 3]) == [3, 2], \"dos elementos\"\nassert producto_sin_self([5]) == [1], \"un elemento: producto vacío es 1\"\nassert producto_sin_self([]) == [], \"vacío\"\nassert producto_sin_self([-2, -3, 4]) == [-12, -8, 6], \"negativos\"\nassert producto_sin_self([1, 1, 1]) == [1, 1, 1]\n",
+      "solucion": "def producto_sin_self(nums):\n    n = len(nums)\n    res = [1] * n\n    izquierda = 1\n    for i in range(n):\n        res[i] = izquierda          # producto de todo lo anterior a i\n        izquierda *= nums[i]\n    derecha = 1\n    for i in range(n - 1, -1, -1):\n        res[i] *= derecha           # producto de todo lo posterior a i\n        derecha *= nums[i]\n    return res\n",
+      "explicacion": "1) Ingenua: para cada i multiplicar todos los demás -> O(n^2). Con división: producto total // nums[i] -> O(n), pero falla con ceros (y está prohibido).\n2) Óptima: prefijos y sufijos. res[i] = prefijo[i-1] * sufijo[i+1]. En vez de dos arrays auxiliares, reutilizamos `res` para los prefijos y acumulamos el sufijo en una variable. Trade-off: código menos obvio a cambio de espacio extra O(1).\n3) Final: O(n) tiempo, O(1) espacio extra (sin contar la salida).",
+      "pregunta_entrevistador": "¿Cómo manejarías los ceros si SÍ pudieras dividir? (contar ceros: 0 ceros -> total//x; 1 cero -> solo esa posición vale el producto del resto; 2+ -> todo ceros). ¿Y si el producto desborda? (en Python no, pero en otros lenguajes: módulo o logaritmos)."
+    },
+    {
+      "id": "a07",
+      "tipo": "codigo",
+      "titulo": "Secuencia consecutiva más larga",
+      "dificultad": "extra",
+      "tema": "set / hashmap",
+      "roadmap": "Extra difícil: longest consecutive sequence O(n)",
+      "enunciado": "Dada una lista de enteros sin ordenar, devuelve la longitud de la secuencia de números consecutivos más larga (los números no tienen que estar juntos en la lista). Debe ser O(n): no puedes ordenar.\n\nEjemplos:\n`secuencia_consecutiva([100, 4, 200, 1, 3, 2])` -> `4` (1,2,3,4)\n`secuencia_consecutiva([0,3,7,2,5,8,4,6,0,1])` -> `9`",
+      "pistas": [
+        "Meter todo en un set da búsquedas O(1). ¿Qué pregunta puedes hacerle a ese set sobre cada número?",
+        "Solo tiene sentido empezar a contar desde el INICIO de una secuencia: aquel número x tal que x-1 NO está en el set.",
+        "Para cada x con x-1 ausente, avanza mientras x+1, x+2... estén en el set y lleva el máximo."
+      ],
+      "plantilla": "def secuencia_consecutiva(nums):\n    # tu código aquí\n    pass\n",
+      "tests": "assert secuencia_consecutiva([100, 4, 200, 1, 3, 2]) == 4\nassert secuencia_consecutiva([0, 3, 7, 2, 5, 8, 4, 6, 0, 1]) == 9, \"duplicados\"\nassert secuencia_consecutiva([]) == 0, \"vacío\"\nassert secuencia_consecutiva([5]) == 1, \"un elemento\"\nassert secuencia_consecutiva([1, 2, 0, 1]) == 3, \"duplicados en medio\"\nassert secuencia_consecutiva([-1, -2, 0, 5]) == 3, \"negativos cruzando el cero\"\nassert secuencia_consecutiva([10, 30, 20]) == 1, \"sin consecutivos\"\nassert secuencia_consecutiva(list(range(1000, 0, -1))) == 1000, \"grande y desordenado\"\n",
+      "solucion": "def secuencia_consecutiva(nums):\n    presentes = set(nums)\n    mejor = 0\n    for x in presentes:\n        if x - 1 not in presentes:      # x es el inicio de una secuencia\n            largo = 1\n            while x + largo in presentes:\n                largo += 1\n            mejor = max(mejor, largo)\n    return mejor\n",
+      "explicacion": "1) Ingenua: para cada número buscar x+1, x+2... en la lista (O(n) cada búsqueda) -> O(n^3) peor caso.\n2) Intermedia: ordenar y barrer -> O(n log n), O(1) extra; correcta pero no cumple O(n).\n3) Óptima: set + empezar solo en inicios de secuencia (x-1 ausente). Cada número se recorre como mucho una vez dentro de un while (cada secuencia solo se recorre desde su inicio), así que el total es O(n) aunque haya un while anidado. Trade-off: O(n) de memoria a cambio de evitar el log.\nFinal: O(n) tiempo, O(n) espacio.",
+      "pregunta_entrevistador": "El while anidado parece O(n^2), ¿por qué es O(n)? (cada elemento se visita como máximo dos veces: una en el for y otra dentro de su secuencia). ¿Y si no cabe en memoria? (ordenación externa + barrido, o particionar por rangos). ¿Y si hay que devolver la secuencia en vez de la longitud?"
+    },
+    {
+      "id": "a08",
+      "tipo": "codigo",
+      "titulo": "3Sum sin duplicados",
+      "dificultad": "extra",
+      "tema": "sort + two pointers",
+      "roadmap": "Two pointers (3Sum)",
+      "enunciado": "Dada una lista `nums`, devuelve todos los tripletes `[a, b, c]` de elementos en posiciones distintas tales que `a + b + c == 0`. El resultado no debe contener tripletes repetidos (el orden de los tripletes y de los números dentro de cada uno no importa).\n\nEjemplos:\n`tres_suma([-1, 0, 1, 2, -1, -4])` -> `[[-1,-1,2],[-1,0,1]]`\n`tres_suma([0, 0, 0, 0])` -> `[[0,0,0]]`",
+      "pistas": [
+        "Fuerza bruta son tres bucles anidados, O(n^3). Fija un número y reduce el problema a Two Sum.",
+        "Ordena la lista. Para cada i usa dos punteros izq=i+1 y der=n-1 buscando suma = -nums[i].",
+        "Para evitar duplicados: salta i si nums[i] == nums[i-1], y tras encontrar un triplete avanza izq mientras repita valor."
+      ],
+      "plantilla": "def tres_suma(nums):\n    # tu código aquí\n    pass\n",
+      "tests": "def norm(r):\n    return sorted(sorted(t) for t in r)\n\nr = tres_suma([-1, 0, 1, 2, -1, -4])\nassert norm(r) == [[-1, -1, 2], [-1, 0, 1]]\nassert norm(tres_suma([0, 0, 0, 0])) == [[0, 0, 0]], \"ceros: solo un triplete\"\nassert tres_suma([]) == [], \"vacío\"\nassert tres_suma([0]) == [], \"un elemento\"\nassert tres_suma([1, 2]) == [], \"dos elementos\"\nassert tres_suma([1, 2, 3]) == [], \"sin solución\"\nassert norm(tres_suma([-2, 0, 0, 2, 2])) == [[-2, 0, 2]], \"sin repetir tripletes\"\nr = tres_suma([-4, -2, -2, -2, 0, 1, 2, 2, 2, 3, 3, 4, 4, 6, 6])\nassert len(r) == len({tuple(sorted(t)) for t in r}), \"hay tripletes duplicados\"\nassert norm(r) == [[-4, -2, 6], [-4, 0, 4], [-4, 1, 3], [-4, 2, 2], [-2, -2, 4], [-2, 0, 2]]\n",
+      "solucion": "def tres_suma(nums):\n    nums = sorted(nums)\n    res = []\n    n = len(nums)\n    for i in range(n - 2):\n        if nums[i] > 0:\n            break\n        if i > 0 and nums[i] == nums[i - 1]:\n            continue                      # mismo valor fijo: ya probado\n        izq, der = i + 1, n - 1\n        while izq < der:\n            s = nums[i] + nums[izq] + nums[der]\n            if s < 0:\n                izq += 1\n            elif s > 0:\n                der -= 1\n            else:\n                res.append([nums[i], nums[izq], nums[der]])\n                izq += 1\n                while izq < der and nums[izq] == nums[izq - 1]:\n                    izq += 1              # saltar duplicados del segundo número\n    return res\n",
+      "explicacion": "1) Ingenua: tres bucles, y un set de tuplas ordenadas para quitar repetidos -> O(n^3).\n2) Mejor: ordenar y fijar un elemento; el resto es Two Sum con dos punteros sobre una lista ordenada (suma baja -> mueve izq, suma alta -> mueve der). Un hashmap por cada i también da O(n^2) pero el manejo de duplicados es más incómodo. Trade-off: el sort permite O(1) espacio y deduplicar saltando valores iguales.\n3) Final: O(n^2) tiempo (el sort O(n log n) queda dominado), O(1) espacio extra sin contar la salida (O(log n) o O(n) por el sort).",
+      "pregunta_entrevistador": "¿Cómo evitas los duplicados sin usar un set? (lista ordenada y saltar valores iguales consecutivos). ¿Y 4Sum o kSum? (generaliza con recursión: O(n^(k-1))). ¿Y 3Sum closest (más cercano a un objetivo)?"
+    },
+    {
+      "id": "a09",
+      "tipo": "codigo",
+      "titulo": "Contenedor con más agua",
+      "dificultad": "dificil",
+      "tema": "two pointers",
+      "roadmap": "Two pointers (container with most water)",
+      "enunciado": "Tienes una lista `alturas` donde cada elemento es una barra vertical en la posición i. Elige dos barras que, junto con el eje x, formen un contenedor; devuelve el máximo volumen (área) de agua que puede guardar: `min(alturas[i], alturas[j]) * (j - i)`.\n\nEjemplo:\n`contenedor_agua([1,8,6,2,5,4,8,3,7])` -> `49`",
+      "pistas": [
+        "Fuerza bruta: probar todos los pares, O(n^2). ¿Puedes descartar pares sin probarlos?",
+        "Empieza con los punteros en los extremos (máxima anchura). El área la limita la barra más baja.",
+        "Mueve el puntero de la barra MÁS BAJA hacia dentro: mover la más alta nunca puede mejorar (la anchura baja y el mínimo no sube)."
+      ],
+      "plantilla": "def contenedor_agua(alturas):\n    # tu código aquí\n    pass\n",
+      "tests": "assert contenedor_agua([1, 8, 6, 2, 5, 4, 8, 3, 7]) == 49\nassert contenedor_agua([1, 1]) == 1, \"dos barras\"\nassert contenedor_agua([]) == 0, \"vacío\"\nassert contenedor_agua([5]) == 0, \"un elemento\"\nassert contenedor_agua([0, 0, 0]) == 0, \"alturas cero\"\nassert contenedor_agua([4, 3, 2, 1, 4]) == 16, \"extremos iguales\"\nassert contenedor_agua([1, 2, 1]) == 2\nassert contenedor_agua([2, 3, 4, 5, 18, 17, 6]) == 17\n",
+      "solucion": "def contenedor_agua(alturas):\n    izq, der = 0, len(alturas) - 1\n    mejor = 0\n    while izq < der:\n        area = min(alturas[izq], alturas[der]) * (der - izq)\n        mejor = max(mejor, area)\n        if alturas[izq] < alturas[der]:\n            izq += 1\n        else:\n            der -= 1\n    return mejor\n",
+      "explicacion": "1) Ingenua: todos los pares -> O(n^2) tiempo, O(1) espacio.\n2) Óptima: dos punteros desde los extremos. Argumento de corrección: con la barra baja h en un extremo, cualquier contenedor que la mantenga y use una barra más cercana tiene menos anchura y altura <= h, así que es peor; por tanto la barra baja ya no puede dar nada mejor y se descarta. Trade-off: ninguno en memoria; solo hay que justificar el descarte.\n3) Final: O(n) tiempo, O(1) espacio.",
+      "pregunta_entrevistador": "Demuéstrame por qué es correcto mover el puntero de la barra baja (argumento de descarte). ¿Y si quisieras el volumen de agua atrapada tras la lluvia (trapping rain water)? (two pointers con max_izq/max_der, también O(n))."
+    },
+    {
+      "id": "a10",
+      "tipo": "codigo",
+      "titulo": "Mejor momento para comprar y vender",
+      "dificultad": "dificil",
+      "tema": "arrays / greedy",
+      "roadmap": "Problemas clásicos de entrevista (stock)",
+      "enunciado": "`precios[i]` es el precio de una acción el día i. Puedes comprar un día y vender en un día POSTERIOR. Devuelve la ganancia máxima; si no hay forma de ganar, devuelve `0`.\n\nEjemplos:\n`mejor_compra_venta([7,1,5,3,6,4])` -> `5` (compras a 1, vendes a 6)\n`mejor_compra_venta([7,6,4,3,1])` -> `0`",
+      "pistas": [
+        "Para cada día de venta, ¿cuál sería la mejor compra posible? Solo importa el mínimo anterior.",
+        "Recorre una vez guardando el precio mínimo visto hasta ahora.",
+        "En cada día: ganancia = precio - minimo; actualiza la mejor y luego el mínimo."
+      ],
+      "plantilla": "def mejor_compra_venta(precios):\n    # tu código aquí\n    pass\n",
+      "tests": "assert mejor_compra_venta([7, 1, 5, 3, 6, 4]) == 5\nassert mejor_compra_venta([7, 6, 4, 3, 1]) == 0, \"siempre baja\"\nassert mejor_compra_venta([]) == 0, \"vacío\"\nassert mejor_compra_venta([5]) == 0, \"un elemento\"\nassert mejor_compra_venta([2, 4, 1]) == 2, \"el mínimo global llega tarde\"\nassert mejor_compra_venta([3, 3, 3]) == 0, \"precios iguales\"\nassert mejor_compra_venta([1, 2]) == 1\nassert mejor_compra_venta([2, 1, 2, 0, 1]) == 1\n",
+      "solucion": "def mejor_compra_venta(precios):\n    if not precios:\n        return 0\n    minimo = precios[0]\n    mejor = 0\n    for p in precios[1:]:\n        mejor = max(mejor, p - minimo)\n        minimo = min(minimo, p)\n    return mejor\n",
+      "explicacion": "1) Ingenua: probar todos los pares (compra, venta) con compra < venta -> O(n^2).\n2) Óptima: para vender el día i, la mejor compra es el mínimo de los días anteriores. Una pasada manteniendo ese mínimo. Trade-off: ninguno; solo hay que ver que la decisión 'voraz' es suficiente.\n3) Final: O(n) tiempo, O(1) espacio. Es Kadane disfrazado (máximo subarray sobre las diferencias diarias).",
+      "pregunta_entrevistador": "¿Y si puedes hacer tantas transacciones como quieras? (suma de todas las subidas positivas). ¿Y como máximo k transacciones? (DP O(n*k)). ¿Y con enfriamiento de un día o comisión?"
+    },
+    {
+      "id": "a11",
+      "tipo": "codigo",
+      "titulo": "Ventana mínima que contiene todos los caracteres",
+      "dificultad": "extra",
+      "tema": "sliding window",
+      "roadmap": "Sliding window (minimum window substring)",
+      "enunciado": "Dadas dos cadenas `s` y `t`, devuelve la subcadena más corta de `s` que contenga todos los caracteres de `t` (con multiplicidad: si `t` tiene dos 'a', la ventana necesita al menos dos 'a'). Si no existe, devuelve `\"\"`. Si hay varias del mismo largo mínimo, devuelve la que aparece primero. Si `t` es vacía devuelve `\"\"`.\n\nEjemplos:\n`ventana_minima(\"ADOBECODEBANC\", \"ABC\")` -> `\"BANC\"`\n`ventana_minima(\"a\", \"aa\")` -> `\"\"`",
+      "pistas": [
+        "Idea: ventana [izq, der]. Expande der hasta que la ventana sea válida; luego contrae izq mientras siga siendo válida.",
+        "Lleva un Counter de lo que FALTA (necesidades de t) y un contador `faltan` de caracteres aún no cubiertos.",
+        "Al añadir s[der]: si need[c] > 0, faltan -= 1; luego need[c] -= 1. Con faltan == 0 contrae: mientras need[s[izq]] < 0 sobra ese carácter, quítalo."
+      ],
+      "plantilla": "def ventana_minima(s, t):\n    # tu código aquí\n    pass\n",
+      "tests": "assert ventana_minima(\"ADOBECODEBANC\", \"ABC\") == \"BANC\"\nassert ventana_minima(\"a\", \"a\") == \"a\", \"mínimo posible\"\nassert ventana_minima(\"a\", \"aa\") == \"\", \"no alcanza la multiplicidad\"\nassert ventana_minima(\"\", \"a\") == \"\", \"s vacía\"\nassert ventana_minima(\"abc\", \"\") == \"\", \"t vacía\"\nassert ventana_minima(\"aa\", \"aa\") == \"aa\", \"todo s\"\nassert ventana_minima(\"ab\", \"b\") == \"b\", \"al final\"\nassert ventana_minima(\"bba\", \"ab\") == \"ba\"\nassert ventana_minima(\"xyz\", \"abc\") == \"\", \"sin coincidencias\"\nassert ventana_minima(\"abcabdebac\", \"cda\") == \"cabd\", \"con ventanas candidatas más largas\"\nassert ventana_minima(\"aaflslflsldkalskaaa\", \"aaa\") == \"aaa\", \"multiplicidad al final\"\n",
+      "solucion": "from collections import Counter\n\ndef ventana_minima(s, t):\n    if not s or not t:\n        return \"\"\n    need = Counter(t)\n    faltan = len(t)\n    izq = 0\n    mejor_ini, mejor_len = 0, float(\"inf\")\n    for der, c in enumerate(s):\n        if need[c] > 0:\n            faltan -= 1\n        need[c] -= 1\n        if faltan == 0:\n            while need[s[izq]] < 0:          # carácter sobrante: se puede soltar\n                need[s[izq]] += 1\n                izq += 1\n            if der - izq + 1 < mejor_len:\n                mejor_ini, mejor_len = izq, der - izq + 1\n            need[s[izq]] += 1                # rompemos la validez para seguir buscando\n            faltan += 1\n            izq += 1\n    return \"\" if mejor_len == float(\"inf\") else s[mejor_ini:mejor_ini + mejor_len]\n",
+      "explicacion": "1) Ingenua: probar todas las subcadenas y comprobar cada una con un Counter -> O(n^2 * m) o O(n^3).\n2) Óptima: ventana deslizante. Expandimos el borde derecho hasta cubrir t y contraemos el izquierdo mientras siga cubriendo; cada puntero avanza como mucho n veces. `need` puede ir negativo: significa 'tengo caracteres de sobra', y `faltan` evita comparar dos Counters en cada paso (que costaría O(alfabeto)). Trade-off: lógica de invariantes delicada a cambio de pasar de polinómico a lineal.\n3) Final: O(n + m) tiempo, O(alfabeto) espacio.",
+      "pregunta_entrevistador": "¿Por qué sigue siendo O(n) si hay un while dentro del for? (izq nunca retrocede). ¿Y si s llega en streaming? (la ventana solo guarda lo necesario, pero hay que bufferizar la ventana actual). Variante: longest repeating character replacement o subcadena sin repetidos más larga con la misma plantilla."
+    },
+    {
+      "id": "a12",
+      "tipo": "codigo",
+      "titulo": "Sudoku válido",
+      "dificultad": "dificil",
+      "tema": "hashset / matrices",
+      "roadmap": "Hashmap/set para recordar (valid sudoku)",
+      "enunciado": "Recibes `tablero`: 9 filas, cada una una cadena de 9 caracteres con dígitos `'1'`-`'9'` o `'.'` para vacío. Devuelve `True` si lo que ya está colocado no viola las reglas: ningún dígito repetido en una fila, columna ni en cada subcuadro 3x3. No hace falta que el sudoku tenga solución, solo que lo puesto sea válido.\n\nEjemplo: un tablero vacío (`['.........'] * 9`) es válido; si `'5'` aparece dos veces en la misma fila, es inválido.",
+      "pistas": [
+        "Necesitas recordar qué dígitos ya viste en cada fila, cada columna y cada caja.",
+        "Usa 27 sets (9 filas, 9 columnas, 9 cajas), o un solo set de tuplas como ('f', i, d).",
+        "El índice de la caja de (f, c) es (f // 3) * 3 + c // 3. Si el dígito ya está en alguno de los tres sets -> False."
+      ],
+      "plantilla": "def sudoku_valido(tablero):\n    # tu código aquí\n    pass\n",
+      "tests": "base = [\"53..7....\", \"6..195...\", \".98....6.\", \"8...6...3\", \"4..8.3..1\", \"7...2...6\", \".6....28.\", \"...419..5\", \"....8..79\"]\nassert sudoku_valido(base) is True\nassert sudoku_valido([\".........\"] * 9) is True, \"vacío\"\nf = list(base); f[0] = \"53..7...5\"\nassert sudoku_valido(f) is False, \"repetido en fila\"\nc = list(base); c[0] = \"83..7....\"\nassert sudoku_valido(c) is False, \"repetido en columna\"\ncaja = [\".........\"] * 9\ncaja = [\"1........\", \".1.......\", \".........\"] + [\".........\"] * 6\nassert sudoku_valido(caja) is False, \"repetido solo en la caja 3x3\"\nok = [\"1........\", \"...1.....\", \".........\"] + [\".........\"] * 6\nassert sudoku_valido(ok) is True, \"mismo dígito en cajas distintas, fila y columna distintas\"\n",
+      "solucion": "def sudoku_valido(tablero):\n    filas = [set() for _ in range(9)]\n    cols = [set() for _ in range(9)]\n    cajas = [set() for _ in range(9)]\n    for f in range(9):\n        for c in range(9):\n            d = tablero[f][c]\n            if d == \".\":\n                continue\n            b = (f // 3) * 3 + c // 3\n            if d in filas[f] or d in cols[c] or d in cajas[b]:\n                return False\n            filas[f].add(d)\n            cols[c].add(d)\n            cajas[b].add(d)\n    return True\n",
+      "explicacion": "1) Ingenua: para cada celda comparar con las otras 20 que comparten fila/columna/caja -> O(81 * 20); o validar cada fila, columna y caja con tres pasadas distintas.\n2) Óptima: una sola pasada con sets por fila, columna y caja; cada celda hace 3 búsquedas O(1). Trade-off: memoria extra (27 sets) a cambio de una única pasada y código claro.\n3) Final: O(81) = O(1) tiempo y espacio (tablero de tamaño fijo); en general O(n^2) para un tablero n x n.",
+      "pregunta_entrevistador": "¿Cómo lo resolverías completo (backtracking)? ¿Y para un tablero NxN generalizado? (misma idea con sqrt(N) para las cajas). ¿Cómo codificas filas/columnas/cajas en bitmasks para hacerlo más rápido?"
+    },
+    {
+      "id": "a13",
+      "tipo": "codigo",
+      "titulo": "LRU Cache",
+      "dificultad": "extra",
+      "tema": "diseño de estructuras",
+      "roadmap": "Estructuras: hashmap + lista doblemente enlazada (LRU cache)",
+      "enunciado": "Implementa la clase `LRUCache(capacidad)` con:\n- `get(clave)`: devuelve el valor, o `-1` si no existe. Marca la clave como recién usada.\n- `put(clave, valor)`: inserta o actualiza (también cuenta como uso). Si se excede la capacidad, elimina la clave menos recientemente usada.\nAmbas operaciones deben ser O(1).\n\nEjemplo:\n`c = LRUCache(2); c.put(1, 1); c.put(2, 2); c.get(1)` -> `1`; `c.put(3, 3)` expulsa la clave 2; `c.get(2)` -> `-1`.",
+      "pistas": [
+        "Necesitas buscar por clave en O(1) y también saber cuál es la más antigua en O(1).",
+        "En Python, collections.OrderedDict mantiene el orden de inserción y tiene move_to_end(k) y popitem(last=False).",
+        "get: si existe, move_to_end y devuelve. put: asigna, move_to_end; si len > capacidad, popitem(last=False)."
+      ],
+      "plantilla": "class LRUCache:\n    def __init__(self, capacidad):\n        # tu código aquí\n        pass\n\n    def get(self, clave):\n        pass\n\n    def put(self, clave, valor):\n        pass\n",
+      "tests": "c = LRUCache(2)\nc.put(1, 1)\nc.put(2, 2)\nassert c.get(1) == 1\nc.put(3, 3)                      # expulsa la 2\nassert c.get(2) == -1, \"la 2 debía ser expulsada\"\nc.put(4, 4)                      # expulsa la 1\nassert c.get(1) == -1\nassert c.get(3) == 3\nassert c.get(4) == 4\nc = LRUCache(1)\nassert c.get(9) == -1, \"cache vacía\"\nc.put(1, \"a\")\nc.put(2, \"b\")\nassert c.get(1) == -1 and c.get(2) == \"b\", \"capacidad 1\"\nc = LRUCache(2)\nc.put(1, 1)\nc.put(2, 2)\nc.put(1, 10)                     # actualizar cuenta como uso\nc.put(3, 3)                      # debe expulsar la 2, no la 1\nassert c.get(1) == 10 and c.get(2) == -1 and c.get(3) == 3, \"actualizar refresca la clave\"\nc = LRUCache(2)\nc.put(1, 0)\nassert c.get(1) == 0, \"un valor 0 no es 'no existe'\"\n",
+      "solucion": "from collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacidad):\n        self.capacidad = capacidad\n        self.datos = OrderedDict()\n\n    def get(self, clave):\n        if clave not in self.datos:\n            return -1\n        self.datos.move_to_end(clave)       # ahora es la más reciente\n        return self.datos[clave]\n\n    def put(self, clave, valor):\n        self.datos[clave] = valor\n        self.datos.move_to_end(clave)\n        if len(self.datos) > self.capacidad:\n            self.datos.popitem(last=False)  # expulsa la menos reciente\n",
+      "explicacion": "1) Ingenua: dict para los valores + lista con el orden de uso. Buscar y mover una clave en la lista es O(n) -> get/put O(n).\n2) Con OrderedDict: internamente es un dict + lista doblemente enlazada, así move_to_end y popitem(last=False) son O(1). Es la respuesta corta en Python.\n3) Versión 'a mano' que piden en la entrevista: un dict clave -> nodo, y una lista doblemente enlazada con nodos centinela cabeza/cola. Cada nodo guarda (clave, valor, prev, next). get: busca el nodo, lo desengancha y lo pone junto a la cola. put: si existe actualiza y mueve; si no, crea el nodo y, si se pasa de capacidad, quita el nodo junto a la cabeza y borra su clave del dict. Por eso el nodo guarda la clave: para borrarla del dict al expulsar. Se necesita la lista DOBLE porque desenganchar un nodo del medio en O(1) requiere conocer su prev.\nFinal: get y put O(1), espacio O(capacidad).",
+      "pregunta_entrevistador": "Impleméntalo sin OrderedDict (dict + lista doblemente enlazada con centinelas). ¿Y si es multihilo? (un lock, o lock striping; los move_to_end modifican estado incluso en get). ¿Y si quieres expiración por tiempo (TTL) o política LFU? ¿Y si la caché es distribuida?"
+    },
+    {
+      "id": "a14",
+      "tipo": "codigo",
+      "titulo": "Búsqueda en array rotado",
+      "dificultad": "extra",
+      "tema": "binary search",
+      "roadmap": "Binary search a mano (variante rotada)",
+      "enunciado": "Una lista ordenada ascendente y SIN duplicados fue rotada en algún punto (p. ej. `[0,1,2,4,5,6,7]` -> `[4,5,6,7,0,1,2]`). Devuelve el índice de `objetivo`, o `-1` si no está. Debe ser O(log n).\n\nEjemplos:\n`buscar_rotado([4,5,6,7,0,1,2], 0)` -> `4`\n`buscar_rotado([4,5,6,7,0,1,2], 3)` -> `-1`",
+      "pistas": [
+        "Haz binary search normal, pero en cada paso una de las dos mitades SIEMPRE está ordenada.",
+        "Compara nums[izq] <= nums[med] para saber si la mitad izquierda es la ordenada.",
+        "Si el objetivo cae dentro del rango de la mitad ordenada, quédate con ella; si no, con la otra."
+      ],
+      "plantilla": "def buscar_rotado(nums, objetivo):\n    # tu código aquí\n    pass\n",
+      "tests": "assert buscar_rotado([4, 5, 6, 7, 0, 1, 2], 0) == 4\nassert buscar_rotado([4, 5, 6, 7, 0, 1, 2], 3) == -1, \"no está\"\nassert buscar_rotado([], 1) == -1, \"vacío\"\nassert buscar_rotado([1], 1) == 0, \"un elemento, está\"\nassert buscar_rotado([1], 0) == -1, \"un elemento, no está\"\nassert buscar_rotado([3, 1], 1) == 1, \"dos elementos rotados\"\nassert buscar_rotado([1, 3], 3) == 1, \"sin rotar, dos elementos\"\nassert buscar_rotado([1, 2, 3, 4, 5], 4) == 3, \"rotación 0\"\nassert buscar_rotado([5, 1, 2, 3, 4], 5) == 0, \"el pivote al inicio\"\nassert buscar_rotado([-3, -1, 0, 2, -9, -7], -9) == 4, \"negativos\"\nfor i, v in enumerate([6, 7, 8, 1, 2, 3, 4, 5]):\n    assert buscar_rotado([6, 7, 8, 1, 2, 3, 4, 5], v) == i\n",
+      "solucion": "def buscar_rotado(nums, objetivo):\n    izq, der = 0, len(nums) - 1\n    while izq <= der:\n        med = (izq + der) // 2\n        if nums[med] == objetivo:\n            return med\n        if nums[izq] <= nums[med]:                    # mitad izquierda ordenada\n            if nums[izq] <= objetivo < nums[med]:\n                der = med - 1\n            else:\n                izq = med + 1\n        else:                                         # mitad derecha ordenada\n            if nums[med] < objetivo <= nums[der]:\n                izq = med + 1\n            else:\n                der = med - 1\n    return -1\n",
+      "explicacion": "1) Ingenua: búsqueda lineal -> O(n); ignora que casi todo está ordenado.\n2) Dos pasadas: hallar el pivote con binary search y luego binary search en la mitad correcta -> O(log n) pero más código. Una pasada: en cada paso, al menos una mitad está ordenada; se decide en cuál puede estar el objetivo por sus extremos y se descarta la otra mitad. Trade-off: condiciones de borde delicadas (<= vs <), por eso los tests de dos elementos.\n3) Final: O(log n) tiempo, O(1) espacio.",
+      "pregunta_entrevistador": "¿Y si hay duplicados? (el peor caso degrada a O(n): cuando nums[izq] == nums[med] == nums[der] no sabes qué mitad está ordenada y debes avanzar izq y der en 1). Variante: encuentra el mínimo del array rotado."
+    },
+    {
+      "id": "a15",
+      "tipo": "codigo",
+      "titulo": "Número de islas",
+      "dificultad": "dificil",
+      "tema": "grafos / BFS-DFS en grilla",
+      "roadmap": "Recursión / BFS-DFS (número de islas)",
+      "enunciado": "`grilla` es una lista de cadenas del mismo largo con `'1'` (tierra) y `'0'` (agua). Una isla es un grupo de `'1'` conectados horizontal o verticalmente (NO en diagonal). Devuelve cuántas islas hay. No modifiques la grilla de entrada.\n\nEjemplo:\n`numero_islas([\"11000\",\"11000\",\"00100\",\"00011\"])` -> `3`",
+      "pistas": [
+        "Recorre cada celda; al encontrar un '1' no visitado, has encontrado una isla nueva.",
+        "Desde esa celda 'inunda' (DFS o BFS) todas las celdas de tierra conectadas marcándolas como visitadas.",
+        "Usa un set `visitados` y una pila/cola explícita en lugar de recursión: una isla de 40.000 celdas desborda la recursión de Python (límite ~1000)."
+      ],
+      "plantilla": "def numero_islas(grilla):\n    # tu código aquí\n    pass\n",
+      "tests": "assert numero_islas([\"11000\", \"11000\", \"00100\", \"00011\"]) == 3\nassert numero_islas([]) == 0, \"grilla vacía\"\nassert numero_islas([\"0\"]) == 0, \"solo agua\"\nassert numero_islas([\"1\"]) == 1, \"una celda de tierra\"\nassert numero_islas([\"10\", \"01\"]) == 2, \"la diagonal no conecta\"\nassert numero_islas([\"111\", \"010\", \"111\"]) == 1, \"isla en forma de H\"\nassert numero_islas([\"101\", \"000\", \"101\"]) == 4, \"cuatro esquinas\"\nassert numero_islas([\"11111\", \"10001\", \"10101\", \"10001\", \"11111\"]) == 2, \"anillo con isla dentro\"\nassert numero_islas([\"1\" * 200] * 200) == 1, \"grilla grande: no debe desbordar la recursión\"\ng = [\"11\", \"00\"]\nnumero_islas(g)\nassert g == [\"11\", \"00\"], \"no debe modificar la entrada\"\n",
+      "solucion": "def numero_islas(grilla):\n    if not grilla:\n        return 0\n    filas, cols = len(grilla), len(grilla[0])\n    visitados = set()\n    islas = 0\n    for f in range(filas):\n        for c in range(cols):\n            if grilla[f][c] == \"1\" and (f, c) not in visitados:\n                islas += 1\n                visitados.add((f, c))\n                pila = [(f, c)]\n                while pila:                       # DFS iterativo\n                    x, y = pila.pop()\n                    for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):\n                        if (0 <= nx < filas and 0 <= ny < cols\n                                and grilla[nx][ny] == \"1\" and (nx, ny) not in visitados):\n                            visitados.add((nx, ny))\n                            pila.append((nx, ny))\n    return islas\n",
+      "explicacion": "1) Ingenua: no hay una versión 'fuerza bruta' razonable; la idea base ya es contar componentes conexas: recorrer la grilla y, en cada tierra nueva, explorar su isla.\n2) DFS recursivo: simple y elegante pero con la recursión de Python (~1000 niveles) falla en islas grandes. DFS/BFS iterativo con pila o cola: mismo coste, sin límite de recursión. Se puede ahorrar el set `visitados` mutando la grilla (poner '0'), a cambio de destruir la entrada: trade-off típico que debes mencionar.\n3) Final: O(filas*cols) tiempo (cada celda se mete una sola vez), O(filas*cols) espacio por visitados y la pila.",
+      "pregunta_entrevistador": "¿Y si la grilla es gigante y no cabe en memoria? (procesar por franjas con Union-Find, fusionando islas en los bordes entre franjas). ¿Y si las celdas cambian dinámicamente (Number of Islands II)? (Union-Find incremental). ¿Qué pasa con la recursión en Python?"
+    },
+    {
+      "id": "a16",
+      "tipo": "codigo",
+      "titulo": "Subconjuntos (subsets)",
+      "dificultad": "dificil",
+      "tema": "backtracking",
+      "roadmap": "Recursión (caso base) / backtracking",
+      "enunciado": "Dada una lista `nums` de enteros DISTINTOS, devuelve todos los subconjuntos posibles (el conjunto potencia), incluido el vacío. El orden no importa.\n\nEjemplos:\n`subconjuntos([1, 2])` -> `[[], [1], [2], [1, 2]]`\n`subconjuntos([])` -> `[[]]`",
+      "pistas": [
+        "Para cada elemento hay dos decisiones: lo incluyes o no. Eso da 2^n subconjuntos.",
+        "Backtracking: función auxiliar(i, actual). Caso base: i == n -> guarda una COPIA de actual.",
+        "Incluir: actual.append(nums[i]); auxiliar(i+1); actual.pop() (deshacer). No incluir: auxiliar(i+1). Cuidado: guarda actual[:] y no actual."
+      ],
+      "plantilla": "def subconjuntos(nums):\n    # tu código aquí\n    pass\n",
+      "tests": "def norm(r):\n    return sorted(sorted(s) for s in r)\n\nassert norm(subconjuntos([1, 2, 3])) == [[], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3]]\nassert subconjuntos([]) == [[]], \"vacío: solo el conjunto vacío\"\nassert norm(subconjuntos([0])) == [[], [0]], \"un elemento\"\nassert len(subconjuntos(list(range(10)))) == 1024, \"2^10\"\nassert norm(subconjuntos([-1, 1])) == [[], [-1], [-1, 1], [1]], \"negativos\"\nr = subconjuntos([1, 2])\nassert all(isinstance(s, list) for s in r) and len({tuple(s) for s in r}) == 4, \"copias independientes\"\n",
+      "solucion": "def subconjuntos(nums):\n    res = []\n    actual = []\n\n    def backtrack(i):\n        if i == len(nums):\n            res.append(actual[:])        # copia, no la referencia\n            return\n        actual.append(nums[i])           # decisión 1: incluir\n        backtrack(i + 1)\n        actual.pop()                     # deshacer\n        backtrack(i + 1)                 # decisión 2: no incluir\n\n    backtrack(0)\n    return res\n",
+      "explicacion": "1) Idea ingenua/iterativa: empezar con [[]] y, por cada elemento, duplicar todos los subconjuntos existentes añadiéndoles ese elemento: res += [s + [x] for s in res]. Es correcta y corta.\n2) Backtracking: árbol de decisiones incluir/no incluir; el patrón elegir -> explorar -> deshacer es la plantilla de permutaciones, combinaciones y N-reinas. Trade-off: usa pila de recursión O(n) pero reutiliza una sola lista de trabajo (se copia solo al guardar).\n3) Final: O(n * 2^n) tiempo (2^n subconjuntos, copiar cada uno cuesta hasta n), O(n) espacio auxiliar sin contar la salida. No se puede hacer mejor porque la salida ya mide eso.",
+      "pregunta_entrevistador": "¿Y si hay elementos duplicados y no quieres subconjuntos repetidos? (ordenar y saltar duplicados en el mismo nivel). ¿Y si n es 30 y no cabe todo en memoria? (generador con yield, o bitmask del 0 al 2^n-1 generando uno a uno). ¿Por qué no puedes bajar de O(2^n)?"
+    },
+    {
+      "id": "a17",
+      "tipo": "codigo",
+      "titulo": "Permutaciones",
+      "dificultad": "dificil",
+      "tema": "backtracking",
+      "roadmap": "Recursión (caso base) / backtracking",
+      "enunciado": "Dada una lista `nums` de enteros DISTINTOS, devuelve todas sus permutaciones (el orden de las permutaciones no importa).\n\nEjemplos:\n`permutaciones([1, 2, 3])` -> `[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]`\n`permutaciones([])` -> `[[]]`",
+      "pistas": [
+        "Construye la permutación posición por posición: en cada paso, ¿qué elementos aún no usaste?",
+        "Mantén una lista `actual` y un set/lista de booleanos `usados`. Caso base: len(actual) == n -> guarda copia.",
+        "Elegir (append + marcar usado) -> recursión -> deshacer (pop + desmarcar)."
+      ],
+      "plantilla": "def permutaciones(nums):\n    # tu código aquí\n    pass\n",
+      "tests": "assert sorted(permutaciones([1, 2, 3])) == [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]\nassert permutaciones([]) == [[]], \"vacío: una permutación (la vacía)\"\nassert permutaciones([7]) == [[7]], \"un elemento\"\nassert sorted(permutaciones([0, 1])) == [[0, 1], [1, 0]]\nassert sorted(permutaciones([-1, 5])) == [[-1, 5], [5, -1]], \"negativos\"\nr = permutaciones([1, 2, 3, 4, 5])\nassert len(r) == 120 and len({tuple(p) for p in r}) == 120, \"5! sin repetidas\"\n",
+      "solucion": "def permutaciones(nums):\n    n = len(nums)\n    res = []\n    actual = []\n    usados = [False] * n\n\n    def backtrack():\n        if len(actual) == n:\n            res.append(actual[:])\n            return\n        for i in range(n):\n            if usados[i]:\n                continue\n            usados[i] = True\n            actual.append(nums[i])      # elegir\n            backtrack()                 # explorar\n            actual.pop()                # deshacer\n            usados[i] = False\n\n    backtrack()\n    return res\n",
+      "explicacion": "1) Ingenua: itertools.permutations (válido en la vida real, pero en entrevista piden implementarlo). Otra: generar todas las listas con repetición y filtrar -> O(n^n).\n2) Backtracking: en cada nivel probar cada elemento no usado. Hay n! hojas, y cada una cuesta O(n) copiarla. Variante: intercambiar elementos in-place (swap con el índice actual) para no necesitar `usados`. Trade-off: recursión de profundidad n con O(n) de memoria auxiliar.\n3) Final: O(n * n!) tiempo, O(n) espacio auxiliar sin contar la salida.",
+      "pregunta_entrevistador": "¿Y con elementos repetidos sin generar permutaciones duplicadas? (ordenar y saltar si nums[i] == nums[i-1] y el anterior no está usado). ¿Cómo generas la k-ésima permutación sin generar todas? (sistema factorial). ¿Podrías usar un generador (yield) para no guardar n! resultados?"
+    },
+    {
+      "id": "a18",
+      "tipo": "codigo",
+      "titulo": "Cambio de monedas (Coin Change)",
+      "dificultad": "extra",
+      "tema": "programación dinámica",
+      "roadmap": "Recursión -> memoización -> DP (coin change / climbing stairs)",
+      "enunciado": "Dada una lista de denominaciones `monedas` (enteros positivos, cantidad ilimitada de cada una) y un `monto`, devuelve el MENOR número de monedas que suman exactamente `monto`. Si es imposible, devuelve `-1`. Para `monto == 0` devuelve `0`.\n\nEjemplos:\n`monedas_minimas([1, 2, 5], 11)` -> `3` (5+5+1)\n`monedas_minimas([2], 3)` -> `-1`",
+      "pistas": [
+        "Estrategia voraz (usar siempre la moneda más grande) falla: con [1,3,4] y monto 6 da 4+1+1 (3 monedas) pero lo óptimo es 3+3 (2).",
+        "Define f(m) = mínimo de monedas para el monto m. f(m) = 1 + min(f(m - c)) para cada moneda c <= m. f(0) = 0.",
+        "Hazlo con tabla: dp[0] = 0, dp[m] = infinito al inicio; llena m de 1 a monto. Al final, si dp[monto] sigue infinito -> -1."
+      ],
+      "plantilla": "def monedas_minimas(monedas, monto):\n    # tu código aquí\n    pass\n",
+      "tests": "assert monedas_minimas([1, 2, 5], 11) == 3\nassert monedas_minimas([2], 3) == -1, \"imposible\"\nassert monedas_minimas([1], 0) == 0, \"monto cero\"\nassert monedas_minimas([], 0) == 0, \"sin monedas y monto 0\"\nassert monedas_minimas([], 5) == -1, \"sin monedas\"\nassert monedas_minimas([1], 2) == 2\nassert monedas_minimas([1, 3, 4], 6) == 2, \"el voraz falla aquí\"\nassert monedas_minimas([2, 5, 10, 1], 27) == 4\nassert monedas_minimas([186, 419, 83, 408], 6249) == 20, \"monto grande: la recursión ingenua no termina\"\n",
+      "solucion": "def monedas_minimas(monedas, monto):\n    INF = float(\"inf\")\n    dp = [0] + [INF] * monto          # dp[m] = mínimo de monedas para m\n    for m in range(1, monto + 1):\n        for c in monedas:\n            if c <= m and dp[m - c] + 1 < dp[m]:\n                dp[m] = dp[m - c] + 1\n    return -1 if dp[monto] == INF else dp[monto]\n",
+      "explicacion": "Camino recursión -> memo -> tabla:\n1) Recursión pura: f(m) = 1 + min(f(m - c)). Correcta pero los subproblemas se repiten: O(S^n) con S = monto, n = monedas (exponencial). Con monto 6249 no termina.\n2) Memoización: el mismo f(m) se calcula una sola vez si lo guardas en un dict (o @lru_cache). Hay `monto` estados y cada uno prueba n monedas -> O(monto * n) tiempo, O(monto) espacio, más la pila de recursión de profundidad `monto` (que en Python puede desbordar).\n3) Tabla bottom-up: mismo coste O(monto * n) pero sin recursión: dp[m] se calcula desde menores a mayores. Trade-off: perdemos la 'pereza' de la memo (calcula todos los montos aunque no hagan falta) a cambio de evitar la recursión.\nFinal: O(monto * n) tiempo, O(monto) espacio. Mismo patrón que climbing stairs (f(n) = f(n-1) + f(n-2)), que se reduce a 2 variables porque solo mira 2 estados atrás.",
+      "pregunta_entrevistador": "¿Por qué no sirve el algoritmo voraz? (contraejemplo [1,3,4], 6). ¿Cuántas FORMAS distintas hay de formar el monto (Coin Change II)? (otro DP, cuidado con el orden de los bucles: combinaciones vs permutaciones). ¿Puedes bajar el espacio en climbing stairs a O(1)?"
+    },
+    {
+      "id": "a19",
+      "tipo": "codigo",
+      "titulo": "Notación polaca inversa",
+      "dificultad": "dificil",
+      "tema": "stack",
+      "roadmap": "Stack (LIFO) / evaluar RPN",
+      "enunciado": "Evalúa una expresión en notación polaca inversa. `tokens` es una lista de cadenas: enteros (pueden ser negativos, como `\"-11\"`) u operadores `+ - * /`. La división entre enteros se trunca hacia cero (`7 / -2` -> `-3`, no `-4`). Devuelve el resultado como entero. La expresión siempre es válida.\n\nEjemplos:\n`evaluar_rpn([\"2\",\"1\",\"+\",\"3\",\"*\"])` -> `9`  (es (2+1)*3)\n`evaluar_rpn([\"4\",\"13\",\"5\",\"/\",\"+\"])` -> `6`",
+      "pistas": [
+        "Recorre los tokens: si es número, empílalo; si es operador, desapila dos operandos y empila el resultado.",
+        "Cuidado con el orden: el primer desapilado es el operando DERECHO. Importa en - y /.",
+        "La división de Python // redondea hacia abajo (-4 para 7//-2). Usa int(a / b) para truncar hacia cero."
+      ],
+      "plantilla": "def evaluar_rpn(tokens):\n    # tu código aquí\n    pass\n",
+      "tests": "assert evaluar_rpn([\"2\", \"1\", \"+\", \"3\", \"*\"]) == 9\nassert evaluar_rpn([\"4\", \"13\", \"5\", \"/\", \"+\"]) == 6\nassert evaluar_rpn([\"10\", \"6\", \"9\", \"3\", \"+\", \"-11\", \"*\", \"/\", \"*\", \"17\", \"+\", \"5\", \"+\"]) == 22\nassert evaluar_rpn([\"3\"]) == 3, \"un solo número\"\nassert evaluar_rpn([\"-3\"]) == -3, \"un solo negativo\"\nassert evaluar_rpn([\"7\", \"-2\", \"/\"]) == -3, \"trunca hacia cero (no hacia -inf)\"\nassert evaluar_rpn([\"-7\", \"2\", \"/\"]) == -3, \"trunca hacia cero con numerador negativo\"\nassert evaluar_rpn([\"5\", \"3\", \"-\"]) == 2, \"orden de operandos en la resta\"\nassert evaluar_rpn([\"0\", \"5\", \"*\"]) == 0\nassert isinstance(evaluar_rpn([\"6\", \"3\", \"/\"]), int), \"debe ser int, no float\"\n",
+      "solucion": "def evaluar_rpn(tokens):\n    pila = []\n    for t in tokens:\n        if t in (\"+\", \"-\", \"*\", \"/\"):\n            b = pila.pop()          # operando derecho\n            a = pila.pop()          # operando izquierdo\n            if t == \"+\":\n                pila.append(a + b)\n            elif t == \"-\":\n                pila.append(a - b)\n            elif t == \"*\":\n                pila.append(a * b)\n            else:\n                pila.append(int(a / b))   # trunca hacia cero\n        else:\n            pila.append(int(t))\n    return pila[0]\n",
+      "explicacion": "1) Ingenua: convertir a notación infija con paréntesis y evaluar de forma recursiva buscando el operador de menor precedencia -> más complejo y O(n^2) por los re-escaneos.\n2) Óptima: la RPN está diseñada para una pila. Cada operador consume los dos últimos valores calculados, así que no hace falta precedencia ni paréntesis. Trade-off: la pila usa O(n) de memoria en el peor caso (muchos números antes de los operadores).\n3) Final: O(n) tiempo, O(n) espacio. Trampas: orden a-b en operadores no conmutativos y truncado hacia cero (int(a / b)) en vez de //.",
+      "pregunta_entrevistador": "¿Cómo convertirías de infija a RPN? (algoritmo shunting-yard con una pila de operadores y precedencias). ¿Qué cambia si hay números muy grandes y a/b en float pierde precisión? (usa división entera con signo manual: q = abs(a)//abs(b) y corrige el signo). ¿Y si la expresión puede ser inválida? (validar tamaño de la pila)."
+    }
+  ]
+}

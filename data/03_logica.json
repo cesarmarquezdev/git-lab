@@ -1,0 +1,450 @@
+{
+  "nivel": "Logica + estructuras de datos",
+  "descripcion": "Problemas clasicos de entrevista: hashmap, two pointers, sliding window, binary search, stack, queue, linked list, BST y Big-O.",
+  "ejercicios": [
+    {
+      "tipo": "codigo",
+      "titulo": "Palindromo",
+      "dificultad": "facil",
+      "tema": "two pointers",
+      "roadmap": "Invertir string / palindromo",
+      "enunciado": "Escribe `es_palindromo(s)` que devuelva True si el texto se lee igual al derecho y al reves, ignorando mayusculas, espacios y signos de puntuacion (solo cuentan letras y digitos).\nUsa dos punteros (uno al inicio, otro al final), sin crear la cadena invertida.\nEjemplos:\n`es_palindromo(\"Anita lava la tina\")` -> True\n`es_palindromo(\"A man, a plan, a canal: Panama\")` -> True\n`es_palindromo(\"hola\")` -> False",
+      "pistas": [
+        "Compara el caracter de la izquierda con el de la derecha y acercalos.",
+        "Antes de comparar, salta los caracteres que no sean `c.isalnum()`.",
+        "Usa `i, j = 0, len(s) - 1` y `while i < j:`; compara con `.lower()`."
+      ],
+      "plantilla": "def es_palindromo(s):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert es_palindromo(\"Anita lava la tina\") is True\nassert es_palindromo(\"A man, a plan, a canal: Panama\") is True\nassert es_palindromo(\"hola\") is False\nassert es_palindromo(\"\") is True, \"cadena vacia\"\nassert es_palindromo(\"a\") is True, \"un caracter\"\nassert es_palindromo(\".,!\") is True, \"solo signos\"\nassert es_palindromo(\"ab\") is False\nassert es_palindromo(\"0P\") is False\n",
+      "solucion": "def es_palindromo(s):\n    i, j = 0, len(s) - 1\n    while i < j:\n        if not s[i].isalnum():\n            i += 1\n        elif not s[j].isalnum():\n            j -= 1\n        elif s[i].lower() != s[j].lower():\n            return False\n        else:\n            i += 1\n            j -= 1\n    return True\n",
+      "explicacion": "1) Casos borde a preguntar: cadena vacia, un solo caracter, solo signos, mayusculas mezcladas, ¿digitos cuentan? ¿unicode?\n2) Solucion ingenua: limpiar el texto, crear `limpio[::-1]` y comparar. Tiempo O(n), espacio O(n).\n3) Mejora y trade-off: dos punteros que se acercan desde los extremos saltando signos: mismo tiempo O(n) pero sin copias. Trade-off: codigo un poco mas largo a cambio de memoria constante.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(1). La version ingenua es O(n) en espacio.",
+      "pregunta_entrevistador": "¿Como lo harias sin usar `isalnum` ni `lower`, o con un stream de caracteres que no cabe en memoria?",
+      "id": "l01"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Anagrama valido",
+      "dificultad": "facil",
+      "tema": "hashmap",
+      "roadmap": "Anagrama valido",
+      "enunciado": "Escribe `es_anagrama(a, b)` que diga si `b` es un anagrama de `a`: mismas letras con la misma cantidad de veces, en cualquier orden. Distingue mayusculas de minusculas.\nEjemplos:\n`es_anagrama(\"listen\", \"silent\")` -> True\n`es_anagrama(\"rat\", \"car\")` -> False\n`es_anagrama(\"aab\", \"abb\")` -> False",
+      "pistas": [
+        "Si las longitudes son distintas ya sabes la respuesta.",
+        "Cuenta cuantas veces aparece cada letra.",
+        "`collections.Counter(a) == Counter(b)` resume la idea; tambien vale un dict a mano."
+      ],
+      "plantilla": "def es_anagrama(a, b):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert es_anagrama(\"listen\", \"silent\") is True\nassert es_anagrama(\"rat\", \"car\") is False\nassert es_anagrama(\"aab\", \"abb\") is False, \"mismas letras distinta cantidad\"\nassert es_anagrama(\"\", \"\") is True, \"vacios\"\nassert es_anagrama(\"a\", \"a\") is True\nassert es_anagrama(\"a\", \"b\") is False\nassert es_anagrama(\"abc\", \"ab\") is False, \"longitudes distintas\"\nassert es_anagrama(\"Ab\", \"ab\") is False, \"distingue mayusculas\"\n",
+      "solucion": "def es_anagrama(a, b):\n    if len(a) != len(b):\n        return False\n    conteo = {}\n    for c in a:\n        conteo[c] = conteo.get(c, 0) + 1\n    for c in b:\n        if conteo.get(c, 0) == 0:\n            return False\n        conteo[c] -= 1\n    return True\n",
+      "explicacion": "1) Casos borde a preguntar: vacios, longitudes distintas, mayusculas, espacios, ¿solo ASCII o unicode?\n2) Solucion ingenua: ordenar ambas cadenas y comparar: `sorted(a) == sorted(b)`. Tiempo O(n log n), espacio O(n).\n3) Mejora y trade-off: contar frecuencias con un hashmap: se recorre cada cadena una vez. Trade-off: usa memoria extra O(k) (k = alfabeto distinto) pero evita ordenar.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(k) donde k es el numero de caracteres distintos (O(1) si el alfabeto es fijo).",
+      "pregunta_entrevistador": "¿Y si el alfabeto es solo a-z? ¿Puedes usar un array de 26 en vez de un dict?",
+      "id": "l02"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Duplicados: detectar, primero y contar",
+      "dificultad": "facil",
+      "tema": "hashmap / set",
+      "roadmap": "Encontrar/contar duplicados; contains duplicate",
+      "enunciado": "Implementa tres funciones sobre una lista de enteros:\n- `hay_duplicados(nums)` -> True si algun valor se repite.\n- `primer_duplicado(nums)` -> el primer valor que se detecta repetido al recorrer de izquierda a derecha, o None si no hay.\n- `contar_duplicados(nums)` -> dict `{valor: veces}` solo con los valores que aparecen mas de una vez.\nEjemplos:\n`hay_duplicados([1, 2, 3, 1])` -> True\n`primer_duplicado([2, 1, 3, 1, 2])` -> 1\n`contar_duplicados([1, 2, 2, 3, 3, 3])` -> {2: 2, 3: 3}",
+      "pistas": [
+        "Un set recuerda lo ya visto en O(1).",
+        "Para `primer_duplicado`: devuelve en cuanto un valor ya este en el set.",
+        "Para `contar_duplicados` usa un dict de conteos y filtra los que tengan > 1."
+      ],
+      "plantilla": "def hay_duplicados(nums):\n    # tu codigo aqui\n    pass\n\n\ndef primer_duplicado(nums):\n    # tu codigo aqui\n    pass\n\n\ndef contar_duplicados(nums):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert hay_duplicados([1, 2, 3, 1]) is True\nassert hay_duplicados([1, 2, 3]) is False\nassert hay_duplicados([]) is False, \"vacia\"\nassert hay_duplicados([5]) is False, \"un elemento\"\nassert primer_duplicado([2, 1, 3, 1, 2]) == 1\nassert primer_duplicado([1, 2, 3]) is None\nassert primer_duplicado([]) is None\nassert contar_duplicados([1, 2, 2, 3, 3, 3]) == {2: 2, 3: 3}\nassert contar_duplicados([1, 2, 3]) == {}\nassert contar_duplicados([]) == {}\n",
+      "solucion": "def hay_duplicados(nums):\n    return len(set(nums)) != len(nums)\n\n\ndef primer_duplicado(nums):\n    vistos = set()\n    for n in nums:\n        if n in vistos:\n            return n\n        vistos.add(n)\n    return None\n\n\ndef contar_duplicados(nums):\n    conteo = {}\n    for n in nums:\n        conteo[n] = conteo.get(n, 0) + 1\n    return {k: v for k, v in conteo.items() if v > 1}\n",
+      "explicacion": "1) Casos borde a preguntar: lista vacia, un elemento, ¿el input se puede modificar?, ¿valores negativos?, ¿que devolver si no hay duplicado?\n2) Solucion ingenua: doble loop comparando cada par: O(n^2) tiempo, O(1) espacio. Tambien ordenar y comparar vecinos: O(n log n).\n3) Mejora y trade-off: set de vistos (o dict de conteos): una sola pasada. Trade-off: gastas O(n) de memoria para bajar el tiempo de O(n^2) a O(n).\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(n). Si la memoria importa y se puede ordenar, O(n log n) tiempo y O(1) espacio extra.",
+      "pregunta_entrevistador": "¿Y si no puedes usar memoria extra?",
+      "id": "l03"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Interseccion de dos arrays",
+      "dificultad": "facil",
+      "tema": "set",
+      "roadmap": "Interseccion de dos arrays",
+      "enunciado": "Escribe `interseccion(a, b)` que devuelva una lista ordenada con los elementos que estan en ambas listas, sin repetidos.\nEjemplos:\n`interseccion([1, 2, 2, 1], [2, 2])` -> [2]\n`interseccion([4, 9, 5], [9, 4, 9, 8, 4])` -> [4, 9]",
+      "pistas": [
+        "Convertir a set permite buscar en O(1).",
+        "La interseccion de sets se escribe con `&`.",
+        "`sorted(set(a) & set(b))`."
+      ],
+      "plantilla": "def interseccion(a, b):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert interseccion([1, 2, 2, 1], [2, 2]) == [2]\nassert interseccion([4, 9, 5], [9, 4, 9, 8, 4]) == [4, 9]\nassert interseccion([], [1, 2]) == [], \"una vacia\"\nassert interseccion([], []) == []\nassert interseccion([1], [1]) == [1], \"un elemento\"\nassert interseccion([1, 2], [3, 4]) == [], \"sin comunes\"\n",
+      "solucion": "def interseccion(a, b):\n    return sorted(set(a) & set(b))\n",
+      "explicacion": "1) Casos borde a preguntar: listas vacias, repetidos (¿se conservan?), ¿ya ordenadas?, ¿tamanos muy distintos?\n2) Solucion ingenua: para cada x de a revisar `x in b` (lista): O(n*m) tiempo.\n3) Mejora y trade-off: pasar la mas pequena a set y recorrer la otra: O(n+m). Trade-off: memoria extra O(min(n,m)). Si ambas estan ordenadas, two pointers da O(n+m) con O(1) extra.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n + m) (mas O(k log k) por ordenar el resultado), espacio O(n + m).",
+      "pregunta_entrevistador": "Si ambas listas ya vienen ordenadas, ¿como evitas usar sets?",
+      "id": "l04"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Primer caracter no repetido",
+      "dificultad": "facil",
+      "tema": "hashmap",
+      "roadmap": "Hashmap para contar",
+      "enunciado": "Escribe `primer_no_repetido(s)` que devuelva el primer caracter que aparece una sola vez en `s`, o None si no existe.\nEjemplos:\n`primer_no_repetido(\"leetcode\")` -> \"l\"\n`primer_no_repetido(\"aabb\")` -> None",
+      "pistas": [
+        "Necesitas saber cuantas veces aparece cada caracter.",
+        "Primera pasada: contar. Segunda pasada: buscar el primero con conteo 1.",
+        "El orden original lo da recorrer la cadena de nuevo, no el dict."
+      ],
+      "plantilla": "def primer_no_repetido(s):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert primer_no_repetido(\"leetcode\") == \"l\"\nassert primer_no_repetido(\"loveleetcode\") == \"v\"\nassert primer_no_repetido(\"aabb\") is None\nassert primer_no_repetido(\"\") is None, \"vacia\"\nassert primer_no_repetido(\"z\") == \"z\", \"un caracter\"\n",
+      "solucion": "def primer_no_repetido(s):\n    conteo = {}\n    for c in s:\n        conteo[c] = conteo.get(c, 0) + 1\n    for c in s:\n        if conteo[c] == 1:\n            return c\n    return None\n",
+      "explicacion": "1) Casos borde a preguntar: cadena vacia, todos repetidos, mayusculas distintas de minusculas, ¿devolver caracter o indice?\n2) Solucion ingenua: para cada caracter usar `s.count(c)`: O(n^2) tiempo.\n3) Mejora y trade-off: dos pasadas con hashmap de conteos. Trade-off: O(k) memoria a cambio de pasar de O(n^2) a O(n).\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(k) con k caracteres distintos.",
+      "pregunta_entrevistador": "¿Y si el texto llega como un stream y solo puedes verlo una vez?",
+      "id": "l05"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Mover ceros al final",
+      "dificultad": "facil",
+      "tema": "two pointers",
+      "roadmap": "Two pointers",
+      "enunciado": "Escribe `mover_ceros(nums)` que mueva todos los 0 al final de la lista modificandola in-place (sin crear otra lista), conservando el orden relativo de los demas. No devuelve nada.\nEjemplo: `[0, 1, 0, 3, 12]` queda `[1, 3, 12, 0, 0]`.",
+      "pistas": [
+        "Un puntero escribe, otro lee.",
+        "Recorre con `i`; cada valor distinto de 0 se coloca en la posicion `escribir`.",
+        "Intercambia `nums[escribir], nums[i] = nums[i], nums[escribir]` y avanza `escribir`."
+      ],
+      "plantilla": "def mover_ceros(nums):\n    # tu codigo aqui\n    pass\n",
+      "tests": "a = [0, 1, 0, 3, 12]\nr = mover_ceros(a)\nassert a == [1, 3, 12, 0, 0]\nassert r is None, \"debe ser in-place y no devolver nada\"\nb = []\nmover_ceros(b)\nassert b == [], \"vacia\"\nc = [0]\nmover_ceros(c)\nassert c == [0], \"un elemento\"\nd = [0, 0, 0]\nmover_ceros(d)\nassert d == [0, 0, 0]\ne = [1, 2, 3]\nmover_ceros(e)\nassert e == [1, 2, 3], \"sin ceros\"\nf = [4, 0, 5]\nmover_ceros(f)\nassert f == [4, 5, 0]\n",
+      "solucion": "def mover_ceros(nums):\n    escribir = 0\n    for i in range(len(nums)):\n        if nums[i] != 0:\n            nums[escribir], nums[i] = nums[i], nums[escribir]\n            escribir += 1\n",
+      "explicacion": "1) Casos borde a preguntar: lista vacia, todos ceros, sin ceros, ¿hay que conservar el orden?, ¿in-place obligatorio?\n2) Solucion ingenua: crear una lista con los no-ceros y rellenar con ceros: O(n) tiempo pero O(n) espacio.\n3) Mejora y trade-off: two pointers (lector y escritor) con swap in-place. Trade-off: modifica la entrada, pero usa memoria constante.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(1).",
+      "pregunta_entrevistador": "¿Puedes minimizar el numero de escrituras cuando hay pocos ceros?",
+      "id": "l06"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Pila (Stack) a mano",
+      "dificultad": "facil",
+      "tema": "stack",
+      "roadmap": "Stack (LIFO)",
+      "enunciado": "Implementa la clase `Pila` (LIFO) usando una lista interna, con los metodos:\n- `push(x)`: agrega al tope.\n- `pop()`: quita y devuelve el tope; lanza `IndexError` si esta vacia.\n- `peek()`: devuelve el tope sin quitarlo; lanza `IndexError` si esta vacia.\n- `vacia()`: True si no hay elementos.\n- `len(pila)` debe funcionar (`__len__`).\nEjemplo: push(1), push(2), pop() -> 2.",
+      "pistas": [
+        "El tope es el final de la lista: `append` y `pop()` son O(1).",
+        "Guarda la lista en `self.items` dentro de `__init__`.",
+        "Para el error: `if self.vacia(): raise IndexError(\"pila vacia\")`."
+      ],
+      "plantilla": "class Pila:\n    # tu codigo aqui\n    pass\n",
+      "tests": "p = Pila()\nassert p.vacia() is True\nassert len(p) == 0\np.push(1)\np.push(2)\nassert p.peek() == 2\nassert len(p) == 2\nassert p.pop() == 2\nassert p.pop() == 1, \"LIFO\"\nassert p.vacia() is True\ntry:\n    p.pop()\n    assert False, \"pop en pila vacia debe lanzar IndexError\"\nexcept IndexError:\n    pass\ntry:\n    p.peek()\n    assert False, \"peek en pila vacia debe lanzar IndexError\"\nexcept IndexError:\n    pass\n",
+      "solucion": "class Pila:\n    def __init__(self):\n        self.items = []\n\n    def push(self, x):\n        self.items.append(x)\n\n    def pop(self):\n        if self.vacia():\n            raise IndexError(\"pila vacia\")\n        return self.items.pop()\n\n    def peek(self):\n        if self.vacia():\n            raise IndexError(\"pila vacia\")\n        return self.items[-1]\n\n    def vacia(self):\n        return len(self.items) == 0\n\n    def __len__(self):\n        return len(self.items)\n",
+      "explicacion": "1) Casos borde a preguntar: ¿que pasa al hacer pop/peek en vacia (excepcion o None)?, ¿capacidad maxima?, ¿tipos de elementos?\n2) Solucion ingenua: una lista donde insertas y quitas al inicio: `insert(0, x)` y `pop(0)` son O(n).\n3) Mejora y trade-off: usar el final de la lista como tope: `append`/`pop()` son O(1) amortizado. Trade-off: ninguno relevante; la lista de Python ya es un array dinamico.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: push, pop, peek, vacia: O(1) tiempo; espacio O(n) para n elementos.",
+      "pregunta_entrevistador": "¿Como harias que ademas devolviera el minimo en O(1) (min stack)?",
+      "id": "l07"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Cola (Queue) con deque",
+      "dificultad": "facil",
+      "tema": "queue",
+      "roadmap": "Queue (FIFO)",
+      "enunciado": "Implementa la clase `Cola` (FIFO) usando `collections.deque`, con los metodos:\n- `encolar(x)`: agrega al final.\n- `desencolar()`: quita y devuelve el primero; lanza `IndexError` si esta vacia.\n- `frente()`: devuelve el primero sin quitarlo; lanza `IndexError` si esta vacia.\n- `vacia()` y `len(cola)`.\nEjemplo: encolar(1), encolar(2), desencolar() -> 1.",
+      "pistas": [
+        "`deque` permite sacar por la izquierda en O(1) con `popleft()`.",
+        "Guarda `self.items = deque()`.",
+        "`list.pop(0)` es O(n); por eso se usa deque."
+      ],
+      "plantilla": "from collections import deque\n\n\nclass Cola:\n    # tu codigo aqui\n    pass\n",
+      "tests": "c = Cola()\nassert c.vacia() is True\nassert len(c) == 0\nc.encolar(1)\nc.encolar(2)\nc.encolar(3)\nassert c.frente() == 1\nassert len(c) == 3\nassert c.desencolar() == 1, \"FIFO\"\nassert c.desencolar() == 2\nassert c.desencolar() == 3\nassert c.vacia() is True\ntry:\n    c.desencolar()\n    assert False, \"desencolar en vacia debe lanzar IndexError\"\nexcept IndexError:\n    pass\ntry:\n    c.frente()\n    assert False, \"frente en vacia debe lanzar IndexError\"\nexcept IndexError:\n    pass\n",
+      "solucion": "from collections import deque\n\n\nclass Cola:\n    def __init__(self):\n        self.items = deque()\n\n    def encolar(self, x):\n        self.items.append(x)\n\n    def desencolar(self):\n        if self.vacia():\n            raise IndexError(\"cola vacia\")\n        return self.items.popleft()\n\n    def frente(self):\n        if self.vacia():\n            raise IndexError(\"cola vacia\")\n        return self.items[0]\n\n    def vacia(self):\n        return len(self.items) == 0\n\n    def __len__(self):\n        return len(self.items)\n",
+      "explicacion": "1) Casos borde a preguntar: ¿cola vacia: excepcion o None?, ¿capacidad limitada?, ¿hay prioridades?\n2) Solucion ingenua: una lista con `pop(0)` para desencolar: cada desencolar es O(n) porque desplaza todo.\n3) Mejora y trade-off: `deque` (lista doblemente enlazada de bloques) hace append y popleft en O(1). Trade-off: indexar en el medio es O(n).\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: encolar, desencolar, frente: O(1) tiempo; espacio O(n).",
+      "pregunta_entrevistador": "¿Como implementarias una cola usando dos pilas?",
+      "id": "l08"
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Big-O de un doble loop",
+      "dificultad": "facil",
+      "tema": "Big-O",
+      "roadmap": "Big-O",
+      "enunciado": "def contar_pares(nums):\n    total = 0\n    for a in nums:\n        for b in nums:\n            if a + b == 10:\n                total += 1\n    return total\n\n¿Cual es la complejidad en tiempo?",
+      "opciones": [
+        "O(n)",
+        "O(n log n)",
+        "O(n^2)",
+        "O(2^n)"
+      ],
+      "correcta": 2,
+      "explicacion": "Dos loops anidados que recorren los n elementos hacen n * n = O(n^2) comparaciones. Con un set o dict se baja a O(n) (idea de Two Sum). La complejidad en espacio es O(1).",
+      "id": "l09"
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Big-O de buscar en dict vs lista",
+      "dificultad": "facil",
+      "tema": "Big-O / hashmap",
+      "roadmap": "Complejidad (dict O(1), in lista O(n), in set O(1))",
+      "enunciado": "datos_lista = list(range(1_000_000))\ndatos_dict = {i: True for i in range(1_000_000)}\n\n999_999 in datos_lista   # (A)\n999_999 in datos_dict    # (B)\n\n¿Cual es la complejidad promedio de A y B?",
+      "opciones": [
+        "A: O(1), B: O(1)",
+        "A: O(n), B: O(1)",
+        "A: O(log n), B: O(1)",
+        "A: O(n), B: O(n)"
+      ],
+      "correcta": 1,
+      "explicacion": "`in` sobre una lista recorre elemento por elemento: O(n). Un dict (y un set) usa una tabla hash, y la busqueda es O(1) en promedio (O(n) en el peor caso por colisiones, muy raro). Por eso 'convertir a set/dict' es la mejora tipica de O(n^2) a O(n).",
+      "id": "l10"
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "LIFO vs FIFO",
+      "dificultad": "facil",
+      "tema": "stack / queue",
+      "roadmap": "Stack (LIFO) / Queue (FIFO)",
+      "enunciado": "Haces `push(1)`, `push(2)`, `push(3)` en una pila y `encolar(1)`, `encolar(2)`, `encolar(3)` en una cola. Luego sacas un elemento de cada una (`pop` y `desencolar`). ¿Que valores salen, respectivamente?",
+      "opciones": [
+        "pila: 1, cola: 3",
+        "pila: 3, cola: 1",
+        "pila: 3, cola: 3",
+        "pila: 1, cola: 1"
+      ],
+      "correcta": 1,
+      "explicacion": "La pila es LIFO (last in, first out): sale el ultimo en entrar, el 3. La cola es FIFO (first in, first out): sale el primero en entrar, el 1. Pila: deshacer, parentesis, DFS. Cola: turnos, BFS, tareas pendientes.",
+      "id": "l11"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Two Sum",
+      "dificultad": "media",
+      "tema": "hashmap",
+      "roadmap": "Two Sum / hashmap O(n^2) a O(n)",
+      "enunciado": "Escribe `two_sum(nums, objetivo)` que devuelva los indices `[i, j]` (con i < j) de dos numeros distintos de la lista cuya suma sea `objetivo`. Si no existe, devuelve `[]`. Asume que a lo sumo hay una solucion y no puedes usar el mismo elemento dos veces.\nEjemplos:\n`two_sum([2, 7, 11, 15], 9)` -> [0, 1]\n`two_sum([3, 2, 4], 6)` -> [1, 2]\n`two_sum([3, 3], 6)` -> [0, 1]",
+      "pistas": [
+        "La fuerza bruta prueba todos los pares: ¿cuanto cuesta?",
+        "Para cada `n`, necesitas saber si `objetivo - n` ya paso por aqui.",
+        "Guarda `{valor: indice}` y consulta el complemento antes de insertar el actual."
+      ],
+      "plantilla": "def two_sum(nums, objetivo):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert two_sum([2, 7, 11, 15], 9) == [0, 1]\nassert two_sum([3, 2, 4], 6) == [1, 2]\nassert two_sum([3, 3], 6) == [0, 1], \"valores repetidos\"\nassert two_sum([], 5) == [], \"vacia\"\nassert two_sum([5], 5) == [], \"un elemento\"\nassert two_sum([1, 2, 3], 100) == [], \"sin solucion\"\nassert two_sum([-1, -2, -3, -4], -6) == [1, 3], \"negativos\"\nassert two_sum([3, 2, 4], 6) != [0, 0], \"no reutilizar el mismo elemento\"\n",
+      "solucion": "def two_sum(nums, objetivo):\n    vistos = {}\n    for i, n in enumerate(nums):\n        complemento = objetivo - n\n        if complemento in vistos:\n            return [vistos[complemento], i]\n        vistos[n] = i\n    return []\n",
+      "explicacion": "1) Casos borde a preguntar: lista vacia o de un elemento, negativos, duplicados (3+3=6), ¿una o varias soluciones?, ¿reusar el mismo elemento?, ¿indices o valores?\n2) Solucion ingenua: doble loop probando todos los pares (i, j): tiempo O(n^2), espacio O(1).\n3) Mejora y trade-off: hashmap valor->indice: para cada n buscas `objetivo - n` en O(1). Trade-off: gastas O(n) memoria para bajar de O(n^2) a O(n).\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(n).",
+      "pregunta_entrevistador": "¿Y si el array viene ordenado y no quieres usar memoria extra? (ver Two Sum II)",
+      "id": "l12"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Two Sum II: array ordenado",
+      "dificultad": "media",
+      "tema": "two pointers",
+      "roadmap": "Two pointers",
+      "enunciado": "Dado un array de enteros ya ordenado de menor a mayor, escribe `two_sum_ordenado(nums, objetivo)` que devuelva `[i, j]` (i < j, indices base 0) con `nums[i] + nums[j] == objetivo`, o `[]` si no hay. Hazlo con O(1) de espacio extra.\nEjemplos:\n`two_sum_ordenado([2, 7, 11, 15], 9)` -> [0, 1]\n`two_sum_ordenado([1, 2, 3, 4, 4, 9], 8)` -> [3, 4]",
+      "pistas": [
+        "Como esta ordenado, el menor esta a la izquierda y el mayor a la derecha.",
+        "Pon un puntero en cada extremo y mira la suma.",
+        "Suma muy grande: baja `j`; suma muy pequena: sube `i`."
+      ],
+      "plantilla": "def two_sum_ordenado(nums, objetivo):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert two_sum_ordenado([2, 7, 11, 15], 9) == [0, 1]\nassert two_sum_ordenado([1, 2, 3, 4, 4, 9], 8) == [3, 4]\nassert two_sum_ordenado([], 3) == [], \"vacia\"\nassert two_sum_ordenado([4], 4) == [], \"un elemento\"\nassert two_sum_ordenado([1, 2, 3], 10) == [], \"sin solucion\"\nassert two_sum_ordenado([-3, -1, 0, 4], 1) == [0, 3], \"negativos\"\nassert two_sum_ordenado([2, 2], 4) == [0, 1]\n",
+      "solucion": "def two_sum_ordenado(nums, objetivo):\n    i, j = 0, len(nums) - 1\n    while i < j:\n        suma = nums[i] + nums[j]\n        if suma == objetivo:\n            return [i, j]\n        if suma < objetivo:\n            i += 1\n        else:\n            j -= 1\n    return []\n",
+      "explicacion": "1) Casos borde a preguntar: ¿esta realmente ordenado?, ¿puede haber duplicados?, ¿indices base 0 o 1?, vacio y un elemento.\n2) Solucion ingenua: doble loop O(n^2), o hashmap O(n) tiempo y O(n) espacio (ignora que esta ordenado).\n3) Mejora y trade-off: two pointers aprovechando el orden: cada paso descarta un candidato. Trade-off: exige entrada ordenada; si no, ordenar cuesta O(n log n) y pierdes los indices originales.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(1).",
+      "pregunta_entrevistador": "Ahora quiero tres numeros que sumen cero (3Sum): ¿como lo extiendes?",
+      "id": "l13"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Parentesis balanceados",
+      "dificultad": "media",
+      "tema": "stack",
+      "roadmap": "Stack (parentesis)",
+      "enunciado": "Escribe `es_balanceado(s)` que devuelva True si los parentesis `()`, corchetes `[]` y llaves `{}` de la cadena estan bien abiertos y cerrados y en el orden correcto. Ignora cualquier otro caracter.\nEjemplos:\n`es_balanceado(\"()[]{}\")` -> True\n`es_balanceado(\"([)]\")` -> False\n`es_balanceado(\"{[()]}\")` -> True",
+      "pistas": [
+        "Lo ultimo que se abre debe ser lo primero que se cierre: eso es LIFO.",
+        "Al ver un simbolo de apertura, apilalo; al ver uno de cierre, compara con el tope.",
+        "Al final la pila debe estar vacia. Usa un dict `{\")\": \"(\", ...}` para emparejar."
+      ],
+      "plantilla": "def es_balanceado(s):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert es_balanceado(\"()[]{}\") is True\nassert es_balanceado(\"([)]\") is False\nassert es_balanceado(\"{[()]}\") is True\nassert es_balanceado(\"\") is True, \"vacia\"\nassert es_balanceado(\"(\") is False, \"un solo simbolo abierto\"\nassert es_balanceado(\")\") is False, \"cierre sin apertura\"\nassert es_balanceado(\"((\") is False, \"sobran aperturas\"\nassert es_balanceado(\"a(b)c\") is True, \"ignora otros caracteres\"\n",
+      "solucion": "def es_balanceado(s):\n    pares = {\")\": \"(\", \"]\": \"[\", \"}\": \"{\"}\n    pila = []\n    for c in s:\n        if c in pares.values():\n            pila.append(c)\n        elif c in pares:\n            if not pila or pila.pop() != pares[c]:\n                return False\n    return not pila\n",
+      "explicacion": "1) Casos borde a preguntar: cadena vacia (¿balanceada?), un solo simbolo, cierre sin apertura, sobran aperturas, otros caracteres.\n2) Solucion ingenua: borrar repetidamente pares adyacentes `()`, `[]`, `{}` hasta que no cambie: O(n^2) en el peor caso.\n3) Mejora y trade-off: una pila: apilar aperturas y validar cada cierre contra el tope. Trade-off: O(n) de memoria en el peor caso (todo aperturas) a cambio de una sola pasada.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(n).",
+      "pregunta_entrevistador": "¿Y si solo hubiera un tipo de parentesis? ¿Puedes hacerlo con O(1) de espacio?",
+      "id": "l14"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Binary search a mano + primer indice",
+      "dificultad": "media",
+      "tema": "binary search",
+      "roadmap": "Binary search a mano",
+      "enunciado": "Implementa dos funciones sobre una lista ordenada ascendente:\n- `busqueda_binaria(nums, objetivo)` -> un indice donde este el valor, o -1. Iterativa, sin usar `bisect` ni `.index`.\n- `primer_indice(nums, objetivo)` -> el indice de la PRIMERA aparicion del valor cuando hay repetidos, o -1.\nEjemplos:\n`busqueda_binaria([1, 3, 5, 7], 5)` -> 2\n`primer_indice([1, 2, 2, 2, 3], 2)` -> 1",
+      "pistas": [
+        "Mantén `izq` y `der`; mira el elemento del medio `medio = (izq + der) // 2`.",
+        "Si el medio es menor que el objetivo, descarta la mitad izquierda; si es mayor, la derecha.",
+        "Para el primero: cuando lo encuentres guarda `medio` como respuesta y sigue buscando a la izquierda (`der = medio - 1`)."
+      ],
+      "plantilla": "def busqueda_binaria(nums, objetivo):\n    # tu codigo aqui\n    pass\n\n\ndef primer_indice(nums, objetivo):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert busqueda_binaria([1, 3, 5, 7], 5) == 2\nassert busqueda_binaria([1, 3, 5, 7], 1) == 0, \"primer elemento\"\nassert busqueda_binaria([1, 3, 5, 7], 7) == 3, \"ultimo elemento\"\nassert busqueda_binaria([1, 3, 5, 7], 4) == -1, \"no esta\"\nassert busqueda_binaria([], 1) == -1, \"vacia\"\nassert busqueda_binaria([9], 9) == 0, \"un elemento\"\nassert busqueda_binaria([9], 3) == -1\nassert busqueda_binaria(list(range(0, 1000, 2)), 998) == 499\nassert primer_indice([1, 2, 2, 2, 3], 2) == 1\nassert primer_indice([2, 2, 2, 2], 2) == 0, \"todos iguales\"\nassert primer_indice([1, 2, 3], 3) == 2\nassert primer_indice([1, 2, 3], 5) == -1\nassert primer_indice([], 1) == -1\nassert primer_indice([1, 1, 2, 2, 2, 2], 2) == 2\n",
+      "solucion": "def busqueda_binaria(nums, objetivo):\n    izq, der = 0, len(nums) - 1\n    while izq <= der:\n        medio = (izq + der) // 2\n        if nums[medio] == objetivo:\n            return medio\n        if nums[medio] < objetivo:\n            izq = medio + 1\n        else:\n            der = medio - 1\n    return -1\n\n\ndef primer_indice(nums, objetivo):\n    izq, der = 0, len(nums) - 1\n    respuesta = -1\n    while izq <= der:\n        medio = (izq + der) // 2\n        if nums[medio] == objetivo:\n            respuesta = medio\n            der = medio - 1\n        elif nums[medio] < objetivo:\n            izq = medio + 1\n        else:\n            der = medio - 1\n    return respuesta\n",
+      "explicacion": "1) Casos borde a preguntar: lista vacia, un elemento, valor en los extremos, valor ausente, repetidos, ¿esta ordenada y en que sentido?\n2) Solucion ingenua: busqueda lineal recorriendo la lista: O(n) tiempo.\n3) Mejora y trade-off: binary search: cada comparacion descarta la mitad. Trade-off: exige datos ordenados (ordenar cuesta O(n log n), no vale la pena para una sola busqueda). Para el primer indice no se corta al encontrarlo: se sigue hacia la izquierda.\n4) Codear hablando: usa `izq <= der` y actualiza con `medio + 1` / `medio - 1` para evitar bucles infinitos. En otros lenguajes `(izq + der)` puede desbordar; en Python no.\n5) Big-O final: tiempo O(log n), espacio O(1) en la version iterativa (la recursiva usaria O(log n) de pila).",
+      "pregunta_entrevistador": "¿Por que `izq <= der` y no `<`? ¿Que pasa con el overflow de `(izq+der)//2` en otros lenguajes?",
+      "id": "l15"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Fibonacci: recursivo, memoizado e iterativo",
+      "dificultad": "media",
+      "tema": "recursion",
+      "roadmap": "Recursion (caso base, Fibonacci y memoizar)",
+      "enunciado": "Implementa tres funciones que calculen el n-esimo Fibonacci (fib(0)=0, fib(1)=1, fib(n)=fib(n-1)+fib(n-2)):\n- `fib_recursivo(n)`: recursion ingenua.\n- `fib_memo(n)`: recursion con memoizacion (guarda resultados ya calculados).\n- `fib_iterativo(n)`: con un loop y dos variables.\nEjemplos: `fib_recursivo(6)` -> 8, `fib_memo(50)` -> 12586269025, `fib_iterativo(0)` -> 0.",
+      "pistas": [
+        "Define bien los casos base: n = 0 y n = 1.",
+        "La version ingenua repite calculos; guarda cada fib(k) en un dict la primera vez.",
+        "Iterativo: `a, b = 0, 1` y avanza `a, b = b, a + b` n veces."
+      ],
+      "plantilla": "def fib_recursivo(n):\n    # tu codigo aqui\n    pass\n\n\ndef fib_memo(n):\n    # tu codigo aqui\n    pass\n\n\ndef fib_iterativo(n):\n    # tu codigo aqui\n    pass\n",
+      "tests": "for n, esperado in [(0, 0), (1, 1), (2, 1), (6, 8), (10, 55), (20, 6765)]:\n    assert fib_recursivo(n) == esperado, f\"fib_recursivo({n})\"\n    assert fib_memo(n) == esperado, f\"fib_memo({n})\"\n    assert fib_iterativo(n) == esperado, f\"fib_iterativo({n})\"\nassert fib_memo(50) == 12586269025\nassert fib_iterativo(50) == 12586269025\nassert fib_memo(300) == fib_iterativo(300), \"memo debe ser rapido y correcto en n grande\"\nassert fib_iterativo(90) == 2880067194370816120\n",
+      "solucion": "def fib_recursivo(n):\n    if n < 2:\n        return n\n    return fib_recursivo(n - 1) + fib_recursivo(n - 2)\n\n\ndef fib_memo(n, memo=None):\n    if memo is None:\n        memo = {}\n    if n < 2:\n        return n\n    if n not in memo:\n        memo[n] = fib_memo(n - 1, memo) + fib_memo(n - 2, memo)\n    return memo[n]\n\n\ndef fib_iterativo(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n",
+      "explicacion": "1) Casos borde a preguntar: ¿n negativo?, n = 0 y 1 como casos base, ¿que tan grande puede ser n?, limite de recursion de Python.\n2) Solucion ingenua: recursion directa: cada llamada genera dos mas, el arbol crece como 2^n. Tiempo O(2^n), espacio O(n) de pila.\n3) Mejora y trade-off: memoizar evita recalcular subproblemas (programacion dinamica top-down): O(n) tiempo y O(n) espacio. Iterativo bottom-up con dos variables: O(n) tiempo y O(1) espacio. Trade-off: el memo es mas legible pero consume pila y memoria.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: recursivo O(2^n) tiempo / O(n) espacio; memo O(n) / O(n); iterativo O(n) / O(1). Ojo: fib_memo(300) con recursion se acerca al limite de recursion de Python (1000).",
+      "pregunta_entrevistador": "¿Por que la version ingenua es exponencial? Dibuja el arbol de llamadas de fib(5). ¿Se puede en O(log n)?",
+      "id": "l16"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Rotar array k posiciones",
+      "dificultad": "media",
+      "tema": "arrays",
+      "roadmap": "Array/string (rotacion)",
+      "enunciado": "Escribe `rotar(nums, k)` que rote la lista `k` posiciones hacia la derecha IN-PLACE (modificando la lista original, sin devolver nada). `k` puede ser mayor que el largo.\nEjemplos:\n`[1, 2, 3, 4, 5, 6, 7]` con k=3 queda `[5, 6, 7, 1, 2, 3, 4]`\n`[1, 2]` con k=3 queda `[2, 1]`",
+      "pistas": [
+        "Si k >= len, solo importa `k % len`.",
+        "Piensa en invertir: toda la lista, luego los primeros k, luego el resto.",
+        "Escribe una funcion auxiliar `invertir(i, j)` con dos punteros. Tambien vale `nums[:] = nums[-k:] + nums[:-k]` si aceptas O(n) de espacio."
+      ],
+      "plantilla": "def rotar(nums, k):\n    # tu codigo aqui\n    pass\n",
+      "tests": "a = [1, 2, 3, 4, 5, 6, 7]\nr = rotar(a, 3)\nassert a == [5, 6, 7, 1, 2, 3, 4]\nassert r is None, \"in-place: no devuelve nada\"\nb = [1, 2]\nrotar(b, 3)\nassert b == [2, 1], \"k mayor que el largo\"\nc = []\nrotar(c, 5)\nassert c == [], \"vacia\"\nd = [9]\nrotar(d, 4)\nassert d == [9], \"un elemento\"\ne = [1, 2, 3]\nrotar(e, 0)\nassert e == [1, 2, 3], \"k = 0\"\nf = [1, 2, 3]\nrotar(f, 3)\nassert f == [1, 2, 3], \"k = largo\"\n",
+      "solucion": "def rotar(nums, k):\n    n = len(nums)\n    if n == 0:\n        return\n    k %= n\n\n    def invertir(i, j):\n        while i < j:\n            nums[i], nums[j] = nums[j], nums[i]\n            i += 1\n            j -= 1\n\n    invertir(0, n - 1)\n    invertir(0, k - 1)\n    invertir(k, n - 1)\n",
+      "explicacion": "1) Casos borde a preguntar: lista vacia, k = 0, k mayor que el largo, k negativo, ¿in-place?, ¿derecha o izquierda?\n2) Solucion ingenua: rotar de a una posicion k veces (pop + insert): O(n*k) tiempo.\n3) Mejora y trade-off: con slicing `nums[:] = nums[-k:] + nums[:-k]`: O(n) tiempo pero O(n) espacio. Con triple reversa (todo, primeros k, resto): O(n) tiempo y O(1) espacio. Trade-off: la reversa es menos obvia pero no usa memoria extra.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(1) con triple reversa.",
+      "pregunta_entrevistador": "¿Por que funciona la triple reversa? ¿Y si k es negativo?",
+      "id": "l17"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Lista enlazada: agregar e invertir",
+      "dificultad": "media",
+      "tema": "linked list",
+      "roadmap": "Linked list",
+      "enunciado": "Implementa `Nodo` (atributos `valor` y `siguiente`) y `ListaEnlazada` con:\n- `agregar(valor)`: agrega al final.\n- `invertir()`: invierte la lista IN-PLACE (cambiando los punteros, sin crear nodos nuevos).\n- `a_lista()`: devuelve los valores como una lista de Python, de cabeza a cola.\nEjemplo: agregar 1, 2, 3 -> `a_lista()` = [1, 2, 3]; tras `invertir()` -> [3, 2, 1].",
+      "pistas": [
+        "Guarda `self.cabeza` (None si esta vacia).",
+        "Para invertir necesitas tres variables: `previo`, `actual` y `siguiente`.",
+        "En cada paso: guarda `siguiente = actual.siguiente`, apunta `actual.siguiente = previo`, avanza ambos. Al final `self.cabeza = previo`."
+      ],
+      "plantilla": "class Nodo:\n    def __init__(self, valor):\n        self.valor = valor\n        self.siguiente = None\n\n\nclass ListaEnlazada:\n    # tu codigo aqui\n    pass\n",
+      "tests": "l = ListaEnlazada()\nassert l.a_lista() == [], \"vacia\"\nl.invertir()\nassert l.a_lista() == [], \"invertir vacia no falla\"\nl.agregar(1)\nassert l.a_lista() == [1], \"un elemento\"\nl.invertir()\nassert l.a_lista() == [1]\nl.agregar(2)\nl.agregar(3)\nassert l.a_lista() == [1, 2, 3]\nl.invertir()\nassert l.a_lista() == [3, 2, 1]\nl.agregar(0)\nassert l.a_lista() == [3, 2, 1, 0], \"agregar sigue al final tras invertir\"\nl.invertir()\nassert l.a_lista() == [0, 1, 2, 3]\n",
+      "solucion": "class Nodo:\n    def __init__(self, valor):\n        self.valor = valor\n        self.siguiente = None\n\n\nclass ListaEnlazada:\n    def __init__(self):\n        self.cabeza = None\n\n    def agregar(self, valor):\n        nuevo = Nodo(valor)\n        if self.cabeza is None:\n            self.cabeza = nuevo\n            return\n        actual = self.cabeza\n        while actual.siguiente is not None:\n            actual = actual.siguiente\n        actual.siguiente = nuevo\n\n    def invertir(self):\n        previo = None\n        actual = self.cabeza\n        while actual is not None:\n            siguiente = actual.siguiente\n            actual.siguiente = previo\n            previo = actual\n            actual = siguiente\n        self.cabeza = previo\n\n    def a_lista(self):\n        resultado = []\n        actual = self.cabeza\n        while actual is not None:\n            resultado.append(actual.valor)\n            actual = actual.siguiente\n        return resultado\n",
+      "explicacion": "1) Casos borde a preguntar: lista vacia, un nodo, ¿simple o doble enlazada?, ¿hay ciclos?, ¿in-place?\n2) Solucion ingenua: volcar a una lista de Python, invertirla y reconstruir nodos: O(n) tiempo y O(n) espacio.\n3) Mejora y trade-off: invertir punteros con tres variables (previo, actual, siguiente) en una sola pasada. Trade-off: hay que cuidar guardar `siguiente` antes de sobrescribir el puntero, o pierdes el resto de la lista.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: invertir O(n) tiempo, O(1) espacio; agregar al final O(n) (se puede O(1) guardando una referencia a la cola); a_lista O(n) / O(n).",
+      "pregunta_entrevistador": "¿Como lo harias recursivamente? ¿Y como detectas un ciclo en la lista?",
+      "id": "l18"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Subarray de tamano k con suma maxima",
+      "dificultad": "media",
+      "tema": "sliding window",
+      "roadmap": "Sliding window",
+      "enunciado": "Escribe `suma_maxima_k(nums, k)` que devuelva la mayor suma de k elementos consecutivos de la lista. Si `k` es menor que 1 o mayor que el largo de la lista, devuelve None. Usa una ventana deslizante (no recalcules la suma completa en cada paso).\nEjemplos:\n`suma_maxima_k([2, 1, 5, 1, 3, 2], 3)` -> 9\n`suma_maxima_k([4, 2], 2)` -> 6",
+      "pistas": [
+        "La fuerza bruta suma k elementos en cada posicion: O(n*k).",
+        "Calcula la suma de la primera ventana y luego desliza: suma el que entra y resta el que sale.",
+        "`suma += nums[i] - nums[i - k]` y actualiza el maximo."
+      ],
+      "plantilla": "def suma_maxima_k(nums, k):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert suma_maxima_k([2, 1, 5, 1, 3, 2], 3) == 9\nassert suma_maxima_k([4, 2], 2) == 6, \"k igual al largo\"\nassert suma_maxima_k([], 1) is None, \"vacia\"\nassert suma_maxima_k([7], 1) == 7, \"un elemento\"\nassert suma_maxima_k([1, 2], 3) is None, \"k mayor que el largo\"\nassert suma_maxima_k([1, 2, 3], 0) is None, \"k = 0\"\nassert suma_maxima_k([-1, -2, -3, -4], 2) == -3, \"negativos\"\nassert suma_maxima_k([1, 9, -1, 3], 1) == 9\n",
+      "solucion": "def suma_maxima_k(nums, k):\n    if k < 1 or k > len(nums):\n        return None\n    suma = sum(nums[:k])\n    mejor = suma\n    for i in range(k, len(nums)):\n        suma += nums[i] - nums[i - k]\n        mejor = max(mejor, suma)\n    return mejor\n",
+      "explicacion": "1) Casos borde a preguntar: k = 0, k mayor que el largo, lista vacia, negativos (no inicializar el maximo en 0), ¿ventana contigua?\n2) Solucion ingenua: para cada inicio sumar k elementos: O(n*k) tiempo.\n3) Mejora y trade-off: sliding window: la ventana se desplaza sumando el elemento nuevo y restando el que sale. Trade-off: ninguno, solo requiere ver que las ventanas consecutivas comparten k-1 elementos.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(1).",
+      "pregunta_entrevistador": "¿Y si la ventana fuera de tamano variable (suma >= S con la menor longitud)?",
+      "id": "l19"
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Big-O de loop + binary search",
+      "dificultad": "media",
+      "tema": "Big-O",
+      "roadmap": "Big-O",
+      "enunciado": "def cuantos_estan(buscados, ordenada):\n    # buscados tiene n elementos; ordenada tiene m elementos y esta ordenada\n    cuenta = 0\n    for x in buscados:\n        if busqueda_binaria(ordenada, x) != -1:\n            cuenta += 1\n    return cuenta\n\n¿Cual es la complejidad en tiempo?",
+      "opciones": [
+        "O(n + m)",
+        "O(n log m)",
+        "O(n * m)",
+        "O(log n)"
+      ],
+      "correcta": 1,
+      "explicacion": "El loop corre n veces y cada binary search sobre m elementos cuesta O(log m): total O(n log m). Si n == m seria O(n log n). Comparado con busqueda lineal dentro del loop (O(n*m)) es una gran mejora.",
+      "id": "l20"
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Big-O de Fibonacci recursivo ingenuo",
+      "dificultad": "media",
+      "tema": "Big-O / recursion",
+      "roadmap": "Recursion (caso base, Fibonacci y memoizar)",
+      "enunciado": "def fib(n):\n    if n < 2:\n        return n\n    return fib(n - 1) + fib(n - 2)\n\n¿Cual es la complejidad en tiempo?",
+      "opciones": [
+        "O(n)",
+        "O(n^2)",
+        "O(log n)",
+        "O(2^n)"
+      ],
+      "correcta": 3,
+      "explicacion": "Cada llamada genera dos llamadas mas y se recalculan los mismos subproblemas, por eso el arbol de llamadas crece exponencialmente: O(2^n) (cota ajustada ~1.618^n). Con memoizacion baja a O(n). El espacio de pila es O(n).",
+      "id": "l21"
+    },
+    {
+      "tipo": "quiz",
+      "titulo": "Cuando usar set en vez de lista",
+      "dificultad": "media",
+      "tema": "set / hashmap",
+      "roadmap": "Set vs lista",
+      "enunciado": "Tienes 1 millon de IDs y debes preguntar muchas veces '¿este ID ya lo vi?'. No te importa el orden ni los repetidos. ¿Que estructura conviene y por que?",
+      "opciones": [
+        "Una lista, porque `in` es O(1)",
+        "Un set, porque `in` es O(1) promedio",
+        "Una lista ordenada, porque `in` es O(1)",
+        "Una tupla, porque es inmutable y por eso mas rapida al buscar"
+      ],
+      "correcta": 1,
+      "explicacion": "Un set usa tabla hash: `in`, `add` y `remove` son O(1) promedio, y elimina repetidos. La lista hace `in` en O(n). Usa lista cuando importa el orden o los repetidos, o necesitas indexar; usa set cuando solo importa la pertenencia. Costo: mas memoria y sus elementos deben ser hashables.",
+      "id": "l22"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "BST: insertar, buscar, inorden y altura",
+      "dificultad": "dificil",
+      "tema": "arbol binario / BST",
+      "roadmap": "Arbol binario / BST",
+      "enunciado": "Implementa un arbol binario de busqueda con la clase `BST` (y `NodoBST` con `valor`, `izq`, `der`):\n- `insertar(valor)`: inserta; si el valor ya existe, lo ignora.\n- `buscar(valor)`: True/False.\n- `inorden()`: lista de valores en orden izquierda-raiz-derecha (sale ordenada).\n- `altura()`: numero de niveles (arbol vacio = 0, un solo nodo = 1).\nEjemplo: insertar 5, 3, 8, 1 -> `inorden()` = [1, 3, 5, 8], `altura()` = 3.",
+      "pistas": [
+        "Menores van a la izquierda, mayores a la derecha.",
+        "Recorrer inorden recursivamente: izquierda, la raiz, derecha.",
+        "altura(nodo) = 0 si es None, si no 1 + max(altura(izq), altura(der))."
+      ],
+      "plantilla": "class NodoBST:\n    def __init__(self, valor):\n        self.valor = valor\n        self.izq = None\n        self.der = None\n\n\nclass BST:\n    # tu codigo aqui\n    pass\n",
+      "tests": "t = BST()\nassert t.inorden() == [], \"arbol vacio\"\nassert t.altura() == 0, \"altura vacio\"\nassert t.buscar(1) is False, \"buscar en vacio\"\nt.insertar(5)\nassert t.altura() == 1, \"un nodo\"\nassert t.inorden() == [5]\nfor v in [3, 8, 1, 4, 7, 9, 3]:\n    t.insertar(v)\nassert t.inorden() == [1, 3, 4, 5, 7, 8, 9], \"inorden ordenado y sin duplicados\"\nassert t.buscar(7) is True\nassert t.buscar(1) is True\nassert t.buscar(6) is False\nassert t.altura() == 3\ncadena = BST()\nfor v in [1, 2, 3, 4]:\n    cadena.insertar(v)\nassert cadena.altura() == 4, \"arbol degenerado\"\nassert cadena.inorden() == [1, 2, 3, 4]\n",
+      "solucion": "class NodoBST:\n    def __init__(self, valor):\n        self.valor = valor\n        self.izq = None\n        self.der = None\n\n\nclass BST:\n    def __init__(self):\n        self.raiz = None\n\n    def insertar(self, valor):\n        nuevo = NodoBST(valor)\n        if self.raiz is None:\n            self.raiz = nuevo\n            return\n        actual = self.raiz\n        while True:\n            if valor == actual.valor:\n                return\n            if valor < actual.valor:\n                if actual.izq is None:\n                    actual.izq = nuevo\n                    return\n                actual = actual.izq\n            else:\n                if actual.der is None:\n                    actual.der = nuevo\n                    return\n                actual = actual.der\n\n    def buscar(self, valor):\n        actual = self.raiz\n        while actual is not None:\n            if valor == actual.valor:\n                return True\n            actual = actual.izq if valor < actual.valor else actual.der\n        return False\n\n    def inorden(self):\n        resultado = []\n\n        def visitar(nodo):\n            if nodo is None:\n                return\n            visitar(nodo.izq)\n            resultado.append(nodo.valor)\n            visitar(nodo.der)\n\n        visitar(self.raiz)\n        return resultado\n\n    def altura(self):\n        def h(nodo):\n            if nodo is None:\n                return 0\n            return 1 + max(h(nodo.izq), h(nodo.der))\n\n        return h(self.raiz)\n",
+      "explicacion": "1) Casos borde a preguntar: arbol vacio, duplicados (¿ignorar, contar o permitir?), arbol degenerado (lista), ¿altura en nodos o aristas?\n2) Solucion ingenua: guardar los valores en una lista y buscar linealmente: buscar O(n); mantenerla ordenada cuesta O(n) por insercion.\n3) Mejora y trade-off: BST: cada comparacion descarta un subarbol. Trade-off: solo es O(log n) si el arbol esta balanceado; con datos ya ordenados degenera en lista (O(n)). Los arboles AVL o rojo-negro garantizan el balance a cambio de mas complejidad.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: insertar/buscar O(h) con h la altura (O(log n) promedio, O(n) peor caso); inorden y altura O(n) tiempo y O(h) espacio de pila; espacio total O(n).",
+      "pregunta_entrevistador": "¿Que pasa si insertas 1, 2, 3, 4, 5 en orden? ¿Como lo arreglas? ¿Como validas que un arbol es un BST?",
+      "id": "l23"
+    },
+    {
+      "tipo": "codigo",
+      "titulo": "Substring mas largo sin repetidos",
+      "dificultad": "dificil",
+      "tema": "sliding window",
+      "roadmap": "Sliding window",
+      "enunciado": "Escribe `longitud_substring_unico(s)` que devuelva la longitud del substring (caracteres contiguos) mas largo que no repite ningun caracter.\nEjemplos:\n`longitud_substring_unico(\"abcabcbb\")` -> 3 (\"abc\")\n`longitud_substring_unico(\"bbbbb\")` -> 1\n`longitud_substring_unico(\"pwwkew\")` -> 3 (\"wke\")",
+      "pistas": [
+        "Una ventana [izq, der] que siempre contiene caracteres unicos.",
+        "Si el nuevo caracter ya esta en la ventana, mueve `izq` hasta pasar su aparicion anterior.",
+        "Guarda en un dict la ultima posicion de cada caracter; `izq = max(izq, ultima[c] + 1)`."
+      ],
+      "plantilla": "def longitud_substring_unico(s):\n    # tu codigo aqui\n    pass\n",
+      "tests": "assert longitud_substring_unico(\"abcabcbb\") == 3\nassert longitud_substring_unico(\"bbbbb\") == 1\nassert longitud_substring_unico(\"pwwkew\") == 3\nassert longitud_substring_unico(\"\") == 0, \"vacia\"\nassert longitud_substring_unico(\"a\") == 1, \"un caracter\"\nassert longitud_substring_unico(\"abcdef\") == 6, \"todos distintos\"\nassert longitud_substring_unico(\"abba\") == 2, \"el puntero izq nunca retrocede\"\nassert longitud_substring_unico(\"dvdf\") == 3\nassert longitud_substring_unico(\"a b a\") == 3, \"el espacio cuenta como caracter\"\n",
+      "solucion": "def longitud_substring_unico(s):\n    ultima = {}\n    izq = 0\n    mejor = 0\n    for der, c in enumerate(s):\n        if c in ultima and ultima[c] >= izq:\n            izq = ultima[c] + 1\n        ultima[c] = der\n        mejor = max(mejor, der - izq + 1)\n    return mejor\n",
+      "explicacion": "1) Casos borde a preguntar: cadena vacia, un caracter, todos iguales, todos distintos, ¿distingue mayusculas?, ¿espacios?\n2) Solucion ingenua: probar todos los substrings y verificar si tienen repetidos: O(n^3) (o O(n^2) con early break).\n3) Mejora y trade-off: sliding window con dict de ultima posicion: `der` avanza siempre y `izq` salta justo despues de la repeticion. Trade-off: O(k) memoria extra por el dict. Cuidado con 'abba': `izq` nunca debe retroceder, de ahi `ultima[c] >= izq`.\n4) Codear hablando: narra cada paso en voz alta mientras escribes y nombra las variables con claridad.\n5) Big-O final: tiempo O(n), espacio O(min(n, k)) con k el tamano del alfabeto.",
+      "pregunta_entrevistador": "¿Por que cada caracter se visita solo una vez aunque haya un `izq` y un `der`? ¿Y si pides el substring y no solo la longitud?",
+      "id": "l24"
+    }
+  ]
+}

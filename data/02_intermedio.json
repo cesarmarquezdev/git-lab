@@ -1,0 +1,473 @@
+{
+  "nivel": "Intermedio",
+  "descripcion": "Python intermedio y picky de entrevista: decoradores, generadores, closures, dataclasses, collections, hashing y trampas clásicas.",
+  "ejercicios": [
+    {
+      "id": "i01",
+      "tipo": "codigo",
+      "titulo": "Decorador contar_llamadas",
+      "dificultad": "media",
+      "tema": "decoradores",
+      "roadmap": "Decoradores",
+      "enunciado": "Escribe el decorador `contar_llamadas` que cuente cuántas veces se llama a la función decorada. El contador debe estar disponible como atributo `llamadas` de la función decorada (empieza en 0). Debe aceptar cualquier combinación de `*args` y `**kwargs`, devolver el resultado original y conservar `__name__` y `__doc__` de la función original.\n\nEjemplo:\n```\n@contar_llamadas\ndef suma(a, b=0): return a + b\nsuma(1, 2); suma(1, b=5)\nsuma.llamadas  # 2\n```",
+      "pistas": [
+        "Un decorador es una función que recibe una función y devuelve otra (la envoltura).",
+        "La envoltura es un objeto: puedes asignarle atributos, como `envoltura.llamadas = 0`.",
+        "Usa `functools.wraps(func)` sobre la envoltura para conservar nombre y docstring."
+      ],
+      "plantilla": "import functools\n\n\ndef contar_llamadas(func):\n    # tu código aquí\n    pass\n",
+      "tests": "@contar_llamadas\ndef suma(a, b=0):\n    \"\"\"Suma dos números.\"\"\"\n    return a + b\n\nassert suma.llamadas == 0, \"empieza en 0\"\nassert suma(1, 2) == 3\nassert suma(1, b=5) == 6\nassert suma.llamadas == 2, \"cuenta posicionales y keyword\"\nassert suma.__name__ == \"suma\", \"usa functools.wraps\"\nassert suma.__doc__ == \"Suma dos números.\"\n\n@contar_llamadas\ndef saluda():\n    return \"hola\"\n\nassert saluda.llamadas == 0 and suma.llamadas == 2, \"contadores independientes\"\nsaluda(); saluda(); saluda()\nassert saluda.llamadas == 3\n",
+      "solucion": "import functools\n\n\ndef contar_llamadas(func):\n    @functools.wraps(func)\n    def envoltura(*args, **kwargs):\n        envoltura.llamadas += 1\n        return func(*args, **kwargs)\n\n    envoltura.llamadas = 0\n    return envoltura\n",
+      "explicacion": "`@contar_llamadas` equivale a `suma = contar_llamadas(suma)`. La envoltura es un closure que ve `func`; como las funciones son objetos, guardamos el contador como atributo (evita `nonlocal`/globales). `functools.wraps` copia `__name__`, `__doc__`, etc. (sin él, todas las funciones decoradas se llamarían 'envoltura'). Tiempo O(1) extra por llamada, espacio O(1). Alternativa: clase con `__call__`.",
+      "pregunta_entrevistador": "¿Y si decoro un método de una clase? ¿El contador es por instancia o global? ¿Qué pasa en un entorno con hilos?"
+    },
+    {
+      "id": "i02",
+      "tipo": "codigo",
+      "titulo": "Decorador con argumentos: reintentar(n)",
+      "dificultad": "dificil",
+      "tema": "decoradores",
+      "roadmap": "Decoradores",
+      "enunciado": "Escribe `reintentar(n)`, un decorador **con argumentos**. La función decorada se intenta hasta `n` veces: si lanza una excepción se reintenta; si tiene éxito se devuelve su resultado. Si falla las `n` veces, se vuelve a lanzar la **última** excepción. Conserva `__name__`.\n\nEjemplo:\n```\n@reintentar(3)\ndef inestable(): ...  # falla 2 veces y a la tercera devuelve 'ok'\ninestable()  # 'ok'\n```",
+      "pistas": [
+        "Necesitas tres niveles: `reintentar(n)` -> `decorador(func)` -> `envoltura(*args, **kwargs)`.",
+        "Dentro de la envoltura usa un `for` de `n` intentos con `try/except Exception as e`.",
+        "Guarda la última excepción y haz `raise` de ella al terminar el bucle."
+      ],
+      "plantilla": "import functools\n\n\ndef reintentar(n):\n    # tu código aquí\n    pass\n",
+      "tests": "llamadas = []\n\n@reintentar(3)\ndef inestable():\n    llamadas.append(1)\n    if len(llamadas) < 3:\n        raise ValueError(\"falla\")\n    return \"ok\"\n\nassert inestable() == \"ok\"\nassert len(llamadas) == 3, \"se detiene al tener éxito\"\nassert inestable.__name__ == \"inestable\"\n\nintentos = []\n\n@reintentar(2)\ndef siempre_falla():\n    intentos.append(1)\n    raise KeyError(\"x\")\n\ntry:\n    siempre_falla()\n    assert False, \"debía relanzar la excepción\"\nexcept KeyError:\n    pass\nassert len(intentos) == 2, \"exactamente n intentos\"\n\n@reintentar(1)\ndef bien(a, b=1):\n    return a + b\n\nassert bien(2, b=3) == 5, \"pasa args y kwargs\"\n",
+      "solucion": "import functools\n\n\ndef reintentar(n):\n    def decorador(func):\n        @functools.wraps(func)\n        def envoltura(*args, **kwargs):\n            ultima = None\n            for _ in range(n):\n                try:\n                    return func(*args, **kwargs)\n                except Exception as e:\n                    ultima = e\n            raise ultima\n\n        return envoltura\n\n    return decorador\n",
+      "explicacion": "`@reintentar(3)` primero evalúa `reintentar(3)` (devuelve el decorador) y luego aplica ese decorador a la función: por eso hay 3 niveles de funciones anidadas. Capturamos `Exception` (no `BaseException`, para no tragar Ctrl+C). Tiempo O(n) llamadas a func, espacio O(1). Mejora real: backoff exponencial y reintentar solo ciertas excepciones.",
+      "pregunta_entrevistador": "¿Cómo harías que solo reintente ante ciertas excepciones, o que espere entre intentos? ¿Es seguro reintentar una función con efectos secundarios (no idempotente)?"
+    },
+    {
+      "id": "i03",
+      "tipo": "codigo",
+      "titulo": "Generador leer_en_lotes",
+      "dificultad": "media",
+      "tema": "generadores",
+      "roadmap": "Generadores/yield vs lista",
+      "enunciado": "Escribe el generador `leer_en_lotes(iterable, n)` que produzca listas de hasta `n` elementos del iterable. El último lote puede ser más corto. Debe ser **perezoso** (no convertir todo a lista) y funcionar con iterables infinitos. Si `n < 1` lanza `ValueError`.\n\nEjemplo:\n```\nlist(leer_en_lotes([1,2,3,4,5], 2))  # [[1,2],[3,4],[5]]\nlist(leer_en_lotes([], 3))  # []\n```",
+      "pistas": [
+        "Convierte el iterable en iterador con `iter(...)` para ir consumiéndolo.",
+        "`itertools.islice(it, n)` toma hasta n elementos del iterador.",
+        "Bucle infinito: `lote = list(islice(it, n)); if not lote: return; yield lote`."
+      ],
+      "plantilla": "from itertools import islice\n\n\ndef leer_en_lotes(iterable, n):\n    # tu código aquí\n    pass\n",
+      "tests": "import types\nfrom itertools import count, islice\n\nassert list(leer_en_lotes([1, 2, 3, 4, 5], 2)) == [[1, 2], [3, 4], [5]]\nassert list(leer_en_lotes([], 3)) == [], \"vacío\"\nassert list(leer_en_lotes([7], 3)) == [[7]], \"un elemento\"\nassert list(leer_en_lotes(\"abcd\", 2)) == [[\"a\", \"b\"], [\"c\", \"d\"]], \"múltiplo exacto\"\nassert list(leer_en_lotes(range(3), 1)) == [[0], [1], [2]]\nassert isinstance(leer_en_lotes([1], 1), types.GeneratorType), \"debe ser generador\"\nprimeros = list(islice(leer_en_lotes(count(), 3), 2))\nassert primeros == [[0, 1, 2], [3, 4, 5]], \"debe funcionar con iterables infinitos\"\ntry:\n    list(leer_en_lotes([1, 2], 0))\n    assert False, \"n=0 debe lanzar ValueError\"\nexcept ValueError:\n    pass\n",
+      "solucion": "from itertools import islice\n\n\ndef leer_en_lotes(iterable, n):\n    if n < 1:\n        raise ValueError(\"n debe ser >= 1\")\n    it = iter(iterable)\n    while True:\n        lote = list(islice(it, n))\n        if not lote:\n            return\n        yield lote\n",
+      "explicacion": "El generador guarda solo un lote en memoria: espacio O(n) en vez de O(total). `iter()` es clave: con una lista, `islice` sobre la lista misma volvería a empezar; con un iterador sigue donde se quedó. Tiempo O(total). Nota: como contiene `yield`, el `ValueError` se lanza al primer `next()`, no al llamar a la función. Alternativa en 3.12: `itertools.batched`.",
+      "pregunta_entrevistador": "¿Cuándo se lanza el ValueError exactamente, al crear el generador o al iterarlo? ¿Cómo lo harías saltar de inmediato?"
+    },
+    {
+      "id": "i04",
+      "tipo": "codigo",
+      "titulo": "Fibonacci infinito con generador",
+      "dificultad": "media",
+      "tema": "generadores",
+      "roadmap": "Generadores/yield vs lista",
+      "enunciado": "Escribe el generador `fibonacci()` sin argumentos que produzca indefinidamente la sucesión 0, 1, 1, 2, 3, 5, 8... Dos generadores creados por separado deben ser independientes.\n\nEjemplo:\n```\nfrom itertools import islice\nlist(islice(fibonacci(), 7))  # [0, 1, 1, 2, 3, 5, 8]\n```",
+      "pistas": [
+        "Necesitas dos variables, `a` y `b`, y un `while True`.",
+        "En cada vuelta `yield a` y luego avanza el par.",
+        "`a, b = b, a + b` hace la actualización simultánea."
+      ],
+      "plantilla": "def fibonacci():\n    # tu código aquí\n    pass\n",
+      "tests": "from itertools import islice\n\nassert list(islice(fibonacci(), 0)) == [], \"cero elementos\"\nassert list(islice(fibonacci(), 1)) == [0], \"un elemento\"\nassert list(islice(fibonacci(), 10)) == [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]\ng1, g2 = fibonacci(), fibonacci()\nnext(g1); next(g1); next(g1)\nassert next(g2) == 0, \"generadores independientes\"\nassert next(g1) == 2\nassert list(islice(fibonacci(), 100))[-1] == 218922995834555169026\n",
+      "solucion": "def fibonacci():\n    a, b = 0, 1\n    while True:\n        yield a\n        a, b = b, a + b\n",
+      "explicacion": "El estado (a, b) vive en el frame del generador, suspendido entre cada `yield`. Cada elemento cuesta O(1) sumas (en bignums O(dígitos)); espacio O(1) frente a O(n) de construir una lista. Un generador infinito solo se puede consumir con `islice`, `next` o cortando el bucle: `list(fibonacci())` nunca terminaría.",
+      "pregunta_entrevistador": "¿Qué pasa si hago `for x in fibonacci(): print(x)` sin `break`? ¿Y cómo obtendrías el n-ésimo con islice sin guardar todos?"
+    },
+    {
+      "id": "i05",
+      "tipo": "codigo",
+      "titulo": "@property con setter que valida",
+      "dificultad": "media",
+      "tema": "properties",
+      "roadmap": "@property",
+      "enunciado": "Crea la clase `Temperatura` que guarda grados Celsius. Requisitos:\n- `Temperatura(celsius)` inicializa usando el **setter** (para que valide también al construir).\n- Propiedad `celsius` con getter y setter; el setter lanza `ValueError` si el valor es menor a -273.15 (cero absoluto).\n- Propiedad de solo lectura `fahrenheit` (= celsius * 9/5 + 32); intentar asignarla lanza `AttributeError`.\n\nEjemplo:\n```\nt = Temperatura(100); t.fahrenheit  # 212.0\nt.celsius = -300  # ValueError\n```",
+      "pistas": [
+        "Guarda el dato real en un atributo 'privado' como `self._celsius`.",
+        "`@property def celsius` devuelve `_celsius`; `@celsius.setter` valida y asigna.",
+        "En `__init__` escribe `self.celsius = celsius` (no `self._celsius`) para reutilizar la validación."
+      ],
+      "plantilla": "class Temperatura:\n    def __init__(self, celsius):\n        # tu código aquí\n        pass\n",
+      "tests": "t = Temperatura(100)\nassert t.celsius == 100\nassert t.fahrenheit == 212.0\nt.celsius = 0\nassert t.fahrenheit == 32.0\nt.celsius = -273.15\nassert t.celsius == -273.15, \"el borde es válido\"\ntry:\n    t.celsius = -300\n    assert False, \"debía lanzar ValueError\"\nexcept ValueError:\n    pass\nassert t.celsius == -273.15, \"un valor inválido no modifica el estado\"\ntry:\n    Temperatura(-500)\n    assert False, \"el constructor también valida\"\nexcept ValueError:\n    pass\ntry:\n    t.fahrenheit = 10\n    assert False, \"fahrenheit es de solo lectura\"\nexcept AttributeError:\n    pass\n",
+      "solucion": "class Temperatura:\n    def __init__(self, celsius):\n        self.celsius = celsius  # pasa por el setter\n\n    @property\n    def celsius(self):\n        return self._celsius\n\n    @celsius.setter\n    def celsius(self, valor):\n        if valor < -273.15:\n            raise ValueError(\"por debajo del cero absoluto\")\n        self._celsius = valor\n\n    @property\n    def fahrenheit(self):\n        return self._celsius * 9 / 5 + 32\n",
+      "explicacion": "`@property` convierte un método en atributo calculado; sin setter es de solo lectura. Asignar en `__init__` vía `self.celsius = ...` garantiza que el invariante se cumpla desde el principio. La API pública no cambia si más tarde pasas de atributo simple a property (por eso en Python no se escriben getters/setters 'por si acaso'). Acceso O(1).",
+      "pregunta_entrevistador": "¿Por qué `self._celsius = celsius` en `__init__` sería un bug sutil? ¿Qué pasa si un `@property` hace algo costoso y se llama en un bucle?"
+    },
+    {
+      "id": "i06",
+      "tipo": "codigo",
+      "titulo": "@classmethod vs @staticmethod",
+      "dificultad": "media",
+      "tema": "clases",
+      "roadmap": "@staticmethod vs @classmethod",
+      "enunciado": "Completa la clase `Fecha(dia, mes, anio)`:\n- `@classmethod desde_cadena(cls, texto)`: constructor alternativo que recibe `'25/12/2024'` y devuelve una instancia **de `cls`** (debe funcionar bien en subclases).\n- `@staticmethod es_bisiesto(anio)`: True si el año es bisiesto (no necesita ni `self` ni `cls`).\n- `__eq__` para comparar fechas por valor.\n\nEjemplo:\n```\nFecha.desde_cadena('25/12/2024') == Fecha(25, 12, 2024)  # True\nFecha.es_bisiesto(1900)  # False\n```",
+      "pistas": [
+        "`desde_cadena` debe separar con `.split('/')` y convertir cada parte con `int`.",
+        "Devuelve `cls(dia, mes, anio)`, no `Fecha(...)`, para respetar las subclases.",
+        "Bisiesto: divisible entre 4 y (no divisible entre 100 o divisible entre 400)."
+      ],
+      "plantilla": "class Fecha:\n    def __init__(self, dia, mes, anio):\n        self.dia = dia\n        self.mes = mes\n        self.anio = anio\n\n    @classmethod\n    def desde_cadena(cls, texto):\n        pass\n\n    @staticmethod\n    def es_bisiesto(anio):\n        pass\n\n    def __eq__(self, otra):\n        pass\n",
+      "tests": "f = Fecha.desde_cadena(\"25/12/2024\")\nassert (f.dia, f.mes, f.anio) == (25, 12, 2024)\nassert f == Fecha(25, 12, 2024)\nassert f != Fecha(1, 1, 2024)\nassert Fecha.es_bisiesto(2024) is True\nassert Fecha.es_bisiesto(1900) is False, \"100 no, salvo 400\"\nassert Fecha.es_bisiesto(2000) is True\nassert Fecha.es_bisiesto(2023) is False\nassert f.es_bisiesto(2024) is True, \"también se puede llamar desde la instancia\"\n\nclass FechaEspecial(Fecha):\n    pass\n\ng = FechaEspecial.desde_cadena(\"1/1/2000\")\nassert type(g) is FechaEspecial, \"classmethod debe respetar la subclase (usa cls)\"\nassert (f == 5) is False, \"comparar con otro tipo no debe fallar\"\n",
+      "solucion": "class Fecha:\n    def __init__(self, dia, mes, anio):\n        self.dia = dia\n        self.mes = mes\n        self.anio = anio\n\n    @classmethod\n    def desde_cadena(cls, texto):\n        dia, mes, anio = (int(p) for p in texto.split(\"/\"))\n        return cls(dia, mes, anio)\n\n    @staticmethod\n    def es_bisiesto(anio):\n        return anio % 4 == 0 and (anio % 100 != 0 or anio % 400 == 0)\n\n    def __eq__(self, otra):\n        if not isinstance(otra, Fecha):\n            return NotImplemented\n        return (self.dia, self.mes, self.anio) == (otra.dia, otra.mes, otra.anio)\n",
+      "explicacion": "`@classmethod` recibe la clase (`cls`): sirve para constructores alternativos y funciona con herencia porque `cls` es la subclase real. `@staticmethod` no recibe nada: es una función normal que vive en el espacio de nombres de la clase por organización. `__eq__` devuelve `NotImplemented` ante tipos ajenos para que Python pruebe el otro lado y caiga en `False`. Todo O(1).",
+      "pregunta_entrevistador": "Si defino `__eq__` sin `__hash__`, ¿puedo meter fechas en un set? ¿Por qué? ¿Cuándo preferirías una función de módulo en vez de un staticmethod?"
+    },
+    {
+      "id": "i07",
+      "tipo": "codigo",
+      "titulo": "Dataclasses: orden, frozen y default_factory",
+      "dificultad": "media",
+      "tema": "dataclasses",
+      "roadmap": "Dataclasses",
+      "enunciado": "Usando `@dataclass` define:\n1. `Version(major, minor, patch)` con enteros: **ordenable** (`<`, `>`) y **inmutable** (frozen), por tanto hasheable.\n2. `Carrito(dueno: str, items: list[str])` donde `items` por defecto es una lista **vacía propia de cada instancia**, con un método `agregar(item)` que añade a `items`.\n\nEjemplo:\n```\nVersion(1,2,3) < Version(1,10,0)  # True\nCarrito('ana').items  # []\n```",
+      "pistas": [
+        "Los parámetros del decorador: `@dataclass(order=True, frozen=True)`.",
+        "No pongas `items: list = []`: dataclass lo rechaza porque sería compartido. Usa `field(default_factory=list)`.",
+        "`order=True` compara como tuplas siguiendo el orden de declaración de los campos."
+      ],
+      "plantilla": "from dataclasses import dataclass, field\n\n\nclass Version:\n    pass\n\n\nclass Carrito:\n    pass\n",
+      "tests": "import dataclasses\n\nassert Version(1, 2, 3) < Version(1, 10, 0), \"compara por campos en orden\"\nassert Version(2, 0, 0) > Version(1, 99, 99)\nassert Version(1, 0, 0) == Version(1, 0, 0)\nassert sorted([Version(1, 2, 0), Version(0, 9, 9), Version(1, 0, 5)]) == [Version(0, 9, 9), Version(1, 0, 5), Version(1, 2, 0)]\nv = Version(1, 0, 0)\ntry:\n    v.major = 5\n    assert False, \"debía ser frozen\"\nexcept dataclasses.FrozenInstanceError:\n    pass\nassert len({Version(1, 0, 0), Version(1, 0, 0), Version(1, 0, 1)}) == 2, \"frozen + eq => hasheable\"\nc1, c2 = Carrito(\"ana\"), Carrito(\"luis\")\nc1.agregar(\"pan\")\nassert c1.items == [\"pan\"]\nassert c2.items == [], \"cada carrito tiene su propia lista\"\nassert Carrito(\"x\", [\"a\"]).items == [\"a\"]\nassert \"Carrito(dueno='ana'\" in repr(c1), \"repr automático\"\n",
+      "solucion": "from dataclasses import dataclass, field\n\n\n@dataclass(order=True, frozen=True)\nclass Version:\n    major: int\n    minor: int\n    patch: int\n\n\n@dataclass\nclass Carrito:\n    dueno: str\n    items: list[str] = field(default_factory=list)\n\n    def agregar(self, item):\n        self.items.append(item)\n",
+      "explicacion": "`@dataclass` genera `__init__`, `__repr__` y `__eq__` a partir de las anotaciones. `order=True` añade `<, <=, >, >=` comparando como tuplas; `frozen=True` impide asignar (y con `eq=True` genera `__hash__`). `field(default_factory=list)` crea una lista nueva por instancia: es la versión dataclass de la trampa del default mutable. Operaciones O(k) en nº de campos.",
+      "pregunta_entrevistador": "¿Por qué dataclass rechaza `items: list = []`? ¿Qué diferencia hay entre `frozen=True` y 'inmutable de verdad' si el campo contiene una lista?"
+    },
+    {
+      "id": "i08",
+      "tipo": "codigo",
+      "titulo": "Closure con nonlocal: crear_contador",
+      "dificultad": "media",
+      "tema": "closures",
+      "roadmap": "Scope LEGB y closures",
+      "enunciado": "Escribe `crear_contador(inicio=0, paso=1)` que devuelva una función. Cada llamada a esa función incrementa en `paso` un contador privado y devuelve el nuevo valor. Dos contadores creados por separado son independientes. No uses variables globales ni clases.\n\nEjemplo:\n```\nc = crear_contador()\nc(), c(), c()  # 1, 2, 3\nd = crear_contador(10, 5); d()  # 15\n```",
+      "pistas": [
+        "La función interna necesita modificar una variable de la función externa.",
+        "Sin declararla, `total += 1` dentro de la interna lanza UnboundLocalError.",
+        "Declara `nonlocal total` en la función interna."
+      ],
+      "plantilla": "def crear_contador(inicio=0, paso=1):\n    # tu código aquí\n    pass\n",
+      "tests": "c = crear_contador()\nassert c() == 1\nassert c() == 2\nassert c() == 3\nd = crear_contador(10, 5)\nassert d() == 15\nassert c() == 4, \"contadores independientes\"\nassert d() == 20\ne = crear_contador(paso=-1)\nassert e() == -1\nassert crear_contador(inicio=100)() == 101\n",
+      "solucion": "def crear_contador(inicio=0, paso=1):\n    total = inicio\n\n    def contar():\n        nonlocal total\n        total += paso\n        return total\n\n    return contar\n",
+      "explicacion": "Regla LEGB: Local, Enclosing, Global, Built-in. Leer una variable de la función envolvente funciona sola (closure), pero **reasignarla** crea una local salvo que declares `nonlocal`. El closure mantiene viva `total` aunque `crear_contador` ya haya terminado. O(1) por llamada. Alternativas: clase con `__call__`, o un generador.",
+      "pregunta_entrevistador": "¿Qué diferencia hay entre `nonlocal` y `global`? ¿Funcionaría sin `nonlocal` si `total` fuera una lista y usara `total[0] += 1`? ¿Por qué?"
+    },
+    {
+      "id": "i09",
+      "tipo": "codigo",
+      "titulo": "Memoización: closure/dict y lru_cache",
+      "dificultad": "dificil",
+      "tema": "memoización",
+      "roadmap": "Scope LEGB y closures",
+      "enunciado": "Implementa Fibonacci memoizado de dos maneras:\n1. `crear_fib_memo()` devuelve una función `fib(n)` que usa un diccionario `cache` guardado en el closure.\n2. `fib_cache(n)` decorada con `functools.lru_cache(maxsize=None)`.\n\nConvención: `fib(0)=0`, `fib(1)=1`. Sin memoización la versión recursiva es O(2^n); con ella O(n).\nEjemplo:\n```\ncrear_fib_memo()(50)  # 12586269025\nfib_cache.cache_info().hits  # > 0\n```",
+      "pistas": [
+        "En el closure: `cache = {}` en la función externa; la interna consulta `if n in cache` antes de calcular.",
+        "Guarda el resultado: `cache[n] = fib(n-1) + fib(n-2)` y devuélvelo. Casos base: n < 2.",
+        "Con lru_cache: `@lru_cache(maxsize=None)` encima de la función recursiva normal."
+      ],
+      "plantilla": "from functools import lru_cache\n\n\ndef crear_fib_memo():\n    # tu código aquí\n    pass\n\n\ndef fib_cache(n):\n    # tu código aquí\n    pass\n",
+      "tests": "fib = crear_fib_memo()\nassert fib(0) == 0\nassert fib(1) == 1\nassert fib(10) == 55\nassert fib(50) == 12586269025, \"debe ser rápido (memoizado)\"\nfib2 = crear_fib_memo()\nassert fib2(5) == 5, \"cada closure tiene su propia caché\"\n\nassert fib_cache(0) == 0\nassert fib_cache(1) == 1\nassert fib_cache(80) == 23416728348467685\ninfo = fib_cache.cache_info()\nassert info.hits > 0, \"lru_cache debe haber reutilizado resultados\"\nassert info.misses == 81, \"cada n distinto se calcula una sola vez\"\nfib_cache.cache_clear()\nassert fib_cache.cache_info().currsize == 0\n",
+      "solucion": "from functools import lru_cache\n\n\ndef crear_fib_memo():\n    cache = {}\n\n    def fib(n):\n        if n < 2:\n            return n\n        if n not in cache:\n            cache[n] = fib(n - 1) + fib(n - 2)\n        return cache[n]\n\n    return fib\n\n\n@lru_cache(maxsize=None)\ndef fib_cache(n):\n    if n < 2:\n        return n\n    return fib_cache(n - 1) + fib_cache(n - 2)\n",
+      "explicacion": "Sin caché, `fib(n)` recalcula los mismos subproblemas: O(2^n). Con diccionario cada n se calcula una vez: O(n) tiempo y O(n) espacio (más la pila de recursión, O(n)). `lru_cache` hace lo mismo como decorador y añade `cache_info()`/`cache_clear()`; requiere argumentos hasheables. `maxsize=None` = sin límite (desde 3.9 también existe `functools.cache`). Versión iterativa: O(n) tiempo, O(1) espacio y sin límite de recursión.",
+      "pregunta_entrevistador": "¿Qué pasa con `fib(5000)` en la versión recursiva memoizada? ¿Cómo evitarías RecursionError? ¿Por qué lru_cache no sirve con argumentos tipo lista?"
+    },
+    {
+      "id": "i10",
+      "tipo": "codigo",
+      "titulo": "Top-k palabras con Counter",
+      "dificultad": "media",
+      "tema": "collections",
+      "roadmap": "Counter/defaultdict/deque",
+      "enunciado": "Escribe `top_k_palabras(texto, k)` que devuelva una lista de tuplas `(palabra, veces)` con las `k` palabras más frecuentes. Ignora mayúsculas y la puntuación `.,;:!?¿¡`. Los empates se ordenan alfabéticamente (para que el resultado sea determinista). Si hay menos de `k` palabras distintas, devuelve todas.\n\nEjemplo:\n```\ntop_k_palabras('a b a c b a', 2)  # [('a', 3), ('b', 2)]\ntop_k_palabras('Hola, hola!', 1)  # [('hola', 2)]\n```",
+      "pistas": [
+        "`collections.Counter` cuenta elementos de un iterable en una sola línea.",
+        "Limpia el texto con `.lower()` y `.strip('.,;:!?¿¡')` por cada palabra tras `.split()`.",
+        "Ordena con `sorted(c.items(), key=lambda p: (-p[1], p[0]))` y corta con `[:k]`."
+      ],
+      "plantilla": "from collections import Counter\n\n\ndef top_k_palabras(texto, k):\n    # tu código aquí\n    pass\n",
+      "tests": "assert top_k_palabras(\"a b a c b a\", 2) == [(\"a\", 3), (\"b\", 2)]\nassert top_k_palabras(\"Hola, hola! HOLA?\", 1) == [(\"hola\", 3)]\nassert top_k_palabras(\"\", 3) == [], \"texto vacío\"\nassert top_k_palabras(\"solo\", 5) == [(\"solo\", 1)], \"menos de k distintas\"\nassert top_k_palabras(\"b a c\", 2) == [(\"a\", 1), (\"b\", 1)], \"empate: orden alfabético\"\nassert top_k_palabras(\"x y x\", 0) == [], \"k = 0\"\n",
+      "solucion": "from collections import Counter\n\n\ndef top_k_palabras(texto, k):\n    palabras = (p.strip(\".,;:!?¿¡\").lower() for p in texto.split())\n    conteo = Counter(p for p in palabras if p)\n    return sorted(conteo.items(), key=lambda par: (-par[1], par[0]))[:k]\n",
+      "explicacion": "`Counter` es un dict especializado: contar es O(n). Ordenar los m distintos cuesta O(m log m). `Counter.most_common(k)` usa un heap (O(m log k)) pero no garantiza el desempate alfabético, por eso ordenamos con una clave compuesta `(-conteo, palabra)`. Espacio O(m). Un `if p` evita contar cadenas vacías (p. ej. un '!' suelto).",
+      "pregunta_entrevistador": "Si el texto tiene 10 millones de palabras y k=10, ¿qué mejorarías (heapq.nlargest)? ¿Cuándo te sirve Counter y cuándo un dict normal con get?"
+    },
+    {
+      "id": "i11",
+      "tipo": "codigo",
+      "titulo": "Agrupar anagramas con defaultdict",
+      "dificultad": "media",
+      "tema": "collections",
+      "roadmap": "Counter/defaultdict/deque",
+      "enunciado": "Escribe `agrupar_anagramas(palabras)` que reciba una lista de palabras y devuelva una lista de grupos (listas) de palabras que son anagramas entre sí. Los grupos aparecen en el orden en que se vio por primera vez cada grupo, y dentro de cada grupo se respeta el orden original.\n\nEjemplo:\n```\nagrupar_anagramas(['eat','tea','tan','ate','nat','bat'])\n# [['eat','tea','ate'], ['tan','nat'], ['bat']]\n```",
+      "pistas": [
+        "Dos palabras son anagramas si tienen las mismas letras ordenadas: `''.join(sorted(p))`.",
+        "Esa cadena ordenada sirve como clave de un diccionario.",
+        "`defaultdict(list)` evita comprobar si la clave existe antes de `.append`."
+      ],
+      "plantilla": "from collections import defaultdict\n\n\ndef agrupar_anagramas(palabras):\n    # tu código aquí\n    pass\n",
+      "tests": "assert agrupar_anagramas([\"eat\", \"tea\", \"tan\", \"ate\", \"nat\", \"bat\"]) == [[\"eat\", \"tea\", \"ate\"], [\"tan\", \"nat\"], [\"bat\"]]\nassert agrupar_anagramas([]) == [], \"vacío\"\nassert agrupar_anagramas([\"a\"]) == [[\"a\"]], \"un elemento\"\nassert agrupar_anagramas([\"ab\", \"cd\"]) == [[\"ab\"], [\"cd\"]], \"sin anagramas\"\nassert agrupar_anagramas([\"ab\", \"ba\", \"ab\"]) == [[\"ab\", \"ba\", \"ab\"]], \"repetidas\"\n",
+      "solucion": "from collections import defaultdict\n\n\ndef agrupar_anagramas(palabras):\n    grupos = defaultdict(list)\n    for palabra in palabras:\n        grupos[\"\".join(sorted(palabra))].append(palabra)\n    return list(grupos.values())\n",
+      "explicacion": "`defaultdict(list)` crea la lista vacía automáticamente al acceder a una clave ausente. Los dicts conservan el orden de inserción (3.7+), así que `values()` ya respeta el orden de primera aparición. Tiempo O(n * L log L) con L = longitud media de palabra; espacio O(n*L). Alternativa en O(n*L): clave = tupla de 26 conteos en vez de ordenar.",
+      "pregunta_entrevistador": "¿Cómo evitarías el log L de ordenar cada palabra? ¿Qué efecto secundario tiene acceder a una clave inexistente en un defaultdict (crea la clave)?"
+    },
+    {
+      "id": "i12",
+      "tipo": "codigo",
+      "titulo": "Deque: ventana de los últimos N y rotar",
+      "dificultad": "media",
+      "tema": "collections",
+      "roadmap": "Counter/defaultdict/deque",
+      "enunciado": "1. Clase `UltimosN(n)`: mantiene solo los últimos `n` valores agregados. Métodos: `agregar(x)`, `valores()` (lista, del más viejo al más nuevo) y `promedio()` (float, o `None` si no hay valores).\n2. Función `rotar(lista, k)`: devuelve una **nueva** lista con los elementos desplazados `k` posiciones a la derecha (`k` puede ser negativo o mayor que la longitud).\n\nEjemplo:\n```\nu = UltimosN(3); [u.agregar(i) for i in range(5)]; u.valores()  # [2, 3, 4]\nrotar([1,2,3,4,5], 2)  # [4, 5, 1, 2, 3]\n```",
+      "pistas": [
+        "`collections.deque(maxlen=n)` descarta automáticamente por el extremo opuesto al agregar.",
+        "`deque.append` y `popleft` son O(1); `list.pop(0)` es O(n).",
+        "`deque.rotate(k)` rota a la derecha con k positivo. Maneja lista vacía."
+      ],
+      "plantilla": "from collections import deque\n\n\nclass UltimosN:\n    def __init__(self, n):\n        pass\n\n    def agregar(self, x):\n        pass\n\n    def valores(self):\n        pass\n\n    def promedio(self):\n        pass\n\n\ndef rotar(lista, k):\n    pass\n",
+      "tests": "u = UltimosN(3)\nassert u.valores() == [], \"vacío\"\nassert u.promedio() is None, \"promedio sin datos\"\nu.agregar(10)\nassert u.valores() == [10] and u.promedio() == 10, \"un elemento\"\nfor i in range(5):\n    u.agregar(i)\nassert u.valores() == [2, 3, 4], \"solo los últimos 3\"\nassert u.promedio() == 3.0\nassert rotar([1, 2, 3, 4, 5], 2) == [4, 5, 1, 2, 3]\nassert rotar([1, 2, 3], -1) == [2, 3, 1], \"k negativo\"\nassert rotar([1, 2, 3], 7) == [3, 1, 2], \"k mayor que la longitud\"\nassert rotar([], 3) == [], \"lista vacía\"\noriginal = [1, 2, 3]\nrotar(original, 1)\nassert original == [1, 2, 3], \"no modifica la original\"\n",
+      "solucion": "from collections import deque\n\n\nclass UltimosN:\n    def __init__(self, n):\n        self._datos = deque(maxlen=n)\n\n    def agregar(self, x):\n        self._datos.append(x)\n\n    def valores(self):\n        return list(self._datos)\n\n    def promedio(self):\n        if not self._datos:\n            return None\n        return sum(self._datos) / len(self._datos)\n\n\ndef rotar(lista, k):\n    d = deque(lista)\n    d.rotate(k)\n    return list(d)\n",
+      "explicacion": "`deque` es una lista doblemente enlazada por bloques: append/pop/popleft/appendleft en O(1), mientras que `list.insert(0, x)` o `pop(0)` son O(n). Con `maxlen` es un buffer circular perfecto para ventanas deslizantes (agregar O(1)). `rotate` es O(k mod n). Contrapartida: indexar en el medio es O(n). `promedio` es O(n); podrías mantener una suma acumulada para O(1).",
+      "pregunta_entrevistador": "¿Cómo harías promedio() en O(1)? ¿Por qué no usar una lista con `pop(0)` para la ventana? ¿Cuándo es mejor una lista que un deque?"
+    },
+    {
+      "id": "i13",
+      "tipo": "codigo",
+      "titulo": "copy vs deepcopy: clonar una matriz",
+      "dificultad": "media",
+      "tema": "copia de objetos",
+      "roadmap": "copy vs deepcopy",
+      "enunciado": "Escribe `clonar_matriz(m)` que devuelva una copia de una matriz (lista de listas) **sin compartir ninguna fila** con la original: modificar la copia no debe afectar a la original y viceversa. No modifiques la original. Una matriz vacía devuelve `[]`.\n\nEjemplo:\n```\nm = [[1,2],[3,4]]; c = clonar_matriz(m); c[0][0] = 99; m[0][0]  # 1\n```",
+      "pistas": [
+        "`list(m)`, `m[:]` y `copy.copy(m)` son copias superficiales: las filas siguen siendo las mismas.",
+        "Copia cada fila: `[fila[:] for fila in m]`.",
+        "Para estructuras con anidación arbitraria usa `copy.deepcopy(m)`."
+      ],
+      "plantilla": "import copy\n\n\ndef clonar_matriz(m):\n    # tu código aquí\n    pass\n",
+      "tests": "m = [[1, 2], [3, 4]]\nc = clonar_matriz(m)\nassert c == m, \"mismo contenido\"\nassert c is not m, \"lista exterior distinta\"\nassert all(cf is not mf for cf, mf in zip(c, m)), \"filas distintas\"\nc[0][0] = 99\nassert m[0][0] == 1, \"modificar la copia no afecta la original\"\nm[1][1] = -1\nassert c[1][1] == 4, \"y viceversa\"\nassert clonar_matriz([]) == [], \"vacía\"\nassert clonar_matriz([[]]) == [[]], \"una fila vacía\"\nun = [[7]]\ncu = clonar_matriz(un)\ncu[0].append(8)\nassert un == [[7]], \"un elemento\"\nsup = list(m)\nassert sup[0] is m[0], \"(comprobación: la copia superficial sí comparte filas)\"\n",
+      "solucion": "import copy\n\n\ndef clonar_matriz(m):\n    return copy.deepcopy(m)\n    # equivalente para una matriz de 2 niveles: [fila[:] for fila in m]\n",
+      "explicacion": "Copia superficial (`copy.copy`, `list(m)`, `m[:]`) duplica solo el contenedor exterior; los objetos internos se comparten por referencia. `deepcopy` copia recursivamente (y maneja ciclos con un memo). Para solo 2 niveles de números, `[f[:] for f in m]` es O(n*m) y más rápida que deepcopy. Trampa relacionada: `[[0]*3]*3` crea 3 referencias a la MISMA fila; usa `[[0]*3 for _ in range(3)]`.",
+      "pregunta_entrevistador": "¿Qué hace `[[0]*3]*3` y por qué es un bug? ¿Cuándo `deepcopy` puede ser problemático (objetos no copiables, rendimiento, ciclos)?"
+    },
+    {
+      "id": "i14",
+      "tipo": "codigo",
+      "titulo": "map/filter a comprensión",
+      "dificultad": "media",
+      "tema": "comprensiones",
+      "roadmap": "map/filter vs comprensiones",
+      "enunciado": "Esta función usa `map` y `filter`:\n```\ndef cuadrados_pares_viejo(nums):\n    return list(map(lambda x: x * x, filter(lambda x: x % 2 == 0, nums)))\n```\nReescribe:\n1. `cuadrados_pares(nums)` con una **comprensión de lista** (mismo resultado).\n2. `cuadrados_pares_perezoso(nums)` con una **expresión generadora** (devuelve un generador, no una lista).\n3. `longitudes(palabras)` con una **comprensión de diccionario** `{palabra: len(palabra)}` solo para palabras de más de 2 letras.\n\nEjemplo:\n```\ncuadrados_pares([1,2,3,4])  # [4, 16]\nlongitudes(['a', 'casa', 'sol'])  # {'casa': 4, 'sol': 3}\n```",
+      "pistas": [
+        "Forma: `[expresión for x in iterable if condición]`.",
+        "La expresión generadora usa paréntesis en vez de corchetes: `(x*x for x in nums if ...)`.",
+        "Comprensión de dict: `{k: v for k in ... if ...}`."
+      ],
+      "plantilla": "def cuadrados_pares(nums):\n    pass\n\n\ndef cuadrados_pares_perezoso(nums):\n    pass\n\n\ndef longitudes(palabras):\n    pass\n",
+      "tests": "import types\n\ndef cuadrados_pares_viejo(nums):\n    return list(map(lambda x: x * x, filter(lambda x: x % 2 == 0, nums)))\n\nfor caso in ([1, 2, 3, 4], [], [3], [2], [-2, 0, 5]):\n    assert cuadrados_pares(caso) == cuadrados_pares_viejo(caso), caso\nassert cuadrados_pares([1, 2, 3, 4]) == [4, 16]\ng = cuadrados_pares_perezoso([1, 2, 3, 4])\nassert isinstance(g, types.GeneratorType), \"debe ser expresión generadora\"\nassert list(g) == [4, 16]\nassert list(g) == [], \"un generador se agota\"\nassert longitudes([\"a\", \"casa\", \"sol\"]) == {\"casa\": 4, \"sol\": 3}\nassert longitudes([]) == {}\nassert longitudes([\"ab\"]) == {}\n",
+      "solucion": "def cuadrados_pares(nums):\n    return [x * x for x in nums if x % 2 == 0]\n\n\ndef cuadrados_pares_perezoso(nums):\n    return (x * x for x in nums if x % 2 == 0)\n\n\ndef longitudes(palabras):\n    return {p: len(p) for p in palabras if len(p) > 2}\n",
+      "explicacion": "`map`/`filter` con `lambda` son funcionales pero menos legibles; en Python lo idiomático es la comprensión. Complejidad idéntica O(n); `map`/`filter` devuelven iteradores perezosos (por eso el `list(...)`), y su equivalente perezoso es la expresión generadora. `map(str, xs)` con una función ya existente es de los pocos casos donde map sigue siendo razonable (a veces algo más rápido).",
+      "pregunta_entrevistador": "¿Cuándo preferirías map con una función nombrada sobre la comprensión? ¿Qué diferencia de memoria hay entre [..] y (..) con 10 millones de elementos?"
+    },
+    {
+      "id": "i15",
+      "tipo": "codigo",
+      "titulo": "Type hints con Optional",
+      "dificultad": "media",
+      "tema": "type hints",
+      "roadmap": "Type hints (list[int], dict[str,int], Optional)",
+      "enunciado": "Escribe con **type hints** completos:\n1. `buscar_indice(lista: list[int], objetivo: int) -> Optional[int]`: índice de la primera aparición o `None` si no está.\n2. `buscar_usuario(usuarios: list[dict[str, str]], nombre: str) -> Optional[dict[str, str]]`: el primer dict con `'nombre'` igual a `nombre`, o `None`.\n\nEjemplo:\n```\nbuscar_indice([5, 6, 7], 7)  # 2\nbuscar_indice([5, 6], 9)  # None\nbuscar_indice([0], 0)  # 0 (¡no confundir con None!)\n```",
+      "pistas": [
+        "`from typing import Optional`; `Optional[int]` equivale a `int | None`.",
+        "Recorre con `enumerate` y `return` en cuanto encuentres; al final `return None` explícito.",
+        "Cuidado: el índice 0 es falsy; el llamador debe comparar con `is None`."
+      ],
+      "plantilla": "from typing import Optional\n\n\ndef buscar_indice(lista, objetivo):\n    pass\n\n\ndef buscar_usuario(usuarios, nombre):\n    pass\n",
+      "tests": "from typing import Optional\n\nassert buscar_indice([5, 6, 7], 7) == 2\nassert buscar_indice([5, 6, 5], 5) == 0, \"primera aparición\"\nassert buscar_indice([0], 0) == 0, \"índice 0 es válido\"\nassert buscar_indice([], 1) is None, \"lista vacía\"\nassert buscar_indice([1, 2], 9) is None, \"no encontrado\"\nusuarios = [{\"nombre\": \"ana\", \"rol\": \"admin\"}, {\"nombre\": \"luis\", \"rol\": \"dev\"}]\nassert buscar_usuario(usuarios, \"luis\") == {\"nombre\": \"luis\", \"rol\": \"dev\"}\nassert buscar_usuario(usuarios, \"zoe\") is None\nassert buscar_usuario([], \"ana\") is None\nassert buscar_indice.__annotations__[\"return\"] == Optional[int], \"falta el hint de retorno Optional[int]\"\nassert buscar_indice.__annotations__[\"lista\"] == list[int], \"falta el hint list[int]\"\nassert buscar_usuario.__annotations__[\"return\"] == Optional[dict[str, str]]\nassert buscar_usuario.__annotations__[\"usuarios\"] == list[dict[str, str]]\n",
+      "solucion": "from typing import Optional\n\n\ndef buscar_indice(lista: list[int], objetivo: int) -> Optional[int]:\n    for i, valor in enumerate(lista):\n        if valor == objetivo:\n            return i\n    return None\n\n\ndef buscar_usuario(usuarios: list[dict[str, str]], nombre: str) -> Optional[dict[str, str]]:\n    for usuario in usuarios:\n        if usuario.get(\"nombre\") == nombre:\n            return usuario\n    return None\n",
+      "explicacion": "Los hints no se verifican en ejecución: son documentación y la usan herramientas como mypy o el IDE. Desde 3.9 se escribe `list[int]`, `dict[str, str]` (sin `typing.List`) y desde 3.10 `int | None`. `Optional[X]` significa 'X o None', NO 'argumento opcional'. Devolver None obliga al llamador a manejar el caso; alternativa: lanzar excepción o devolver un valor por defecto. Búsqueda lineal O(n), espacio O(1).",
+      "pregunta_entrevistador": "¿Por qué `if buscar_indice(...)` es un bug cuando el resultado puede ser 0? ¿Optional significa que el parámetro es opcional? ¿Los type hints se imponen en tiempo de ejecución?"
+    },
+    {
+      "id": "i16",
+      "tipo": "codigo",
+      "titulo": "Context managers propios",
+      "dificultad": "dificil",
+      "tema": "context managers",
+      "roadmap": "with / excepciones (nivel pro)",
+      "enunciado": "Implementa dos context managers:\n1. Clase `Temporizador` con `__enter__`/`__exit__`: al salir del `with` guarda en `self.segundos` (float >= 0) el tiempo transcurrido (usa `time.perf_counter()`). `__enter__` devuelve `self`. **No debe tragarse las excepciones** (deben propagarse), pero `segundos` debe quedar guardado aun así.\n2. Función `temporalmente(d, clave, valor)` con `@contextlib.contextmanager`: dentro del `with`, `d[clave] = valor`; al salir (incluso si hubo excepción) se restaura el valor anterior, o se elimina la clave si no existía.\n\nEjemplo:\n```\nd = {'a': 1}\nwith temporalmente(d, 'a', 2): d['a']  # 2\nd['a']  # 1\n```",
+      "pistas": [
+        "`__exit__(self, tipo, valor, traza)`: devolver `False`/`None` deja propagar la excepción.",
+        "Con `@contextmanager` el código antes del `yield` es el enter y el de después es el exit.",
+        "Usa `try/finally` alrededor del `yield` para restaurar aunque haya excepción."
+      ],
+      "plantilla": "import time\nfrom contextlib import contextmanager\n\n\nclass Temporizador:\n    pass\n\n\n@contextmanager\ndef temporalmente(d, clave, valor):\n    pass\n",
+      "tests": "with Temporizador() as t:\n    suma = sum(range(1000))\nassert isinstance(t.segundos, float) and t.segundos >= 0\nt2 = Temporizador()\ntry:\n    with t2:\n        raise ValueError(\"boom\")\n    assert False, \"no debe tragarse la excepción\"\nexcept ValueError:\n    pass\nassert t2.segundos >= 0, \"segundos se guarda aunque haya excepción\"\n\nd = {\"a\": 1}\nwith temporalmente(d, \"a\", 2):\n    assert d[\"a\"] == 2\nassert d == {\"a\": 1}, \"restaura el valor previo\"\nwith temporalmente(d, \"nueva\", 9):\n    assert d[\"nueva\"] == 9\nassert \"nueva\" not in d, \"elimina la clave que no existía\"\ntry:\n    with temporalmente(d, \"a\", 5):\n        raise RuntimeError(\"x\")\nexcept RuntimeError:\n    pass\nassert d == {\"a\": 1}, \"restaura incluso con excepción\"\n",
+      "solucion": "import time\nfrom contextlib import contextmanager\n\n\nclass Temporizador:\n    def __enter__(self):\n        self._inicio = time.perf_counter()\n        return self\n\n    def __exit__(self, tipo, valor, traza):\n        self.segundos = time.perf_counter() - self._inicio\n        return False  # no suprime excepciones\n\n\n@contextmanager\ndef temporalmente(d, clave, valor):\n    ausente = object()\n    anterior = d.get(clave, ausente)\n    d[clave] = valor\n    try:\n        yield d\n    finally:\n        if anterior is ausente:\n            d.pop(clave, None)\n        else:\n            d[clave] = anterior\n",
+      "explicacion": "`with` garantiza la limpieza como un `try/finally`. En la versión de clase, `__exit__` devuelve truthy solo si quieres SUPRIMIR la excepción: casi nunca. Con `@contextmanager` el generador debe tener un solo `yield`; sin `try/finally` alrededor, una excepción en el cuerpo se relanza en el yield y saltaría la restauración. Usamos un centinela `object()` en vez de `None` para distinguir 'clave ausente' de 'valor None'. Todo O(1).",
+      "pregunta_entrevistador": "¿Qué pasa si `__exit__` devuelve True? ¿Qué diferencia hay entre `with open(...)` y abrir/cerrar a mano ante una excepción? ¿Por qué un centinela y no None?"
+    },
+    {
+      "id": "i17",
+      "tipo": "codigo",
+      "titulo": "__eq__ y __hash__ para usar en set",
+      "dificultad": "media",
+      "tema": "protocolo de objetos",
+      "roadmap": "Hash / set O(1)",
+      "enunciado": "Crea la clase `Punto(x, y)` para que dos puntos con las mismas coordenadas sean **iguales** y puedan usarse en un `set` o como clave de `dict` (sin duplicados). Implementa `__eq__`, `__hash__` y `__repr__` (`Punto(1, 2)`). Comparar con un objeto de otro tipo no debe fallar y debe dar `False`.\n\nEjemplo:\n```\nlen({Punto(1,2), Punto(1,2), Punto(2,1)})  # 2\nPunto(1,2) == (1,2)  # False\n```",
+      "pistas": [
+        "Por defecto `==` compara identidad (`is`), por eso dos Punto(1,2) son distintos.",
+        "`__hash__` debe ser coherente con `__eq__`: objetos iguales => mismo hash. Delega en `hash((self.x, self.y))`.",
+        "En `__eq__`, si `otro` no es `Punto` devuelve `NotImplemented`."
+      ],
+      "plantilla": "class Punto:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n",
+      "tests": "assert Punto(1, 2) == Punto(1, 2)\nassert Punto(1, 2) != Punto(2, 1)\nassert len({Punto(1, 2), Punto(1, 2), Punto(2, 1)}) == 2, \"sin duplicados en el set\"\nd = {Punto(0, 0): \"origen\"}\nassert d[Punto(0, 0)] == \"origen\", \"usable como clave de dict\"\nassert Punto(1, 2) in {Punto(1, 2)}\nassert (Punto(1, 2) == (1, 2)) is False, \"otro tipo => False, sin error\"\nassert Punto(1, 2) != \"texto\"\nassert hash(Punto(3, 4)) == hash(Punto(3, 4))\nassert repr(Punto(1, 2)) == \"Punto(1, 2)\"\nassert len(set()) == 0 and Punto(5, 5) not in set()\n",
+      "solucion": "class Punto:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\n    def __eq__(self, otro):\n        if not isinstance(otro, Punto):\n            return NotImplemented\n        return (self.x, self.y) == (otro.x, otro.y)\n\n    def __hash__(self):\n        return hash((self.x, self.y))\n\n    def __repr__(self):\n        return f\"Punto({self.x}, {self.y})\"\n",
+      "explicacion": "Un set/dict usa `hash` para localizar el cubo y `==` para confirmar: contrato = si `a == b` entonces `hash(a) == hash(b)`. Al definir `__eq__` sin `__hash__`, Python pone `__hash__ = None` y la clase deja de ser hasheable. Los objetos usados como clave deberían ser inmutables (si cambias x/y tras insertar, el objeto queda 'perdido' en el set). Operaciones O(1) promedio.",
+      "pregunta_entrevistador": "¿Qué pasa si defino `__eq__` pero no `__hash__`? ¿Y si el objeto es mutable y cambio x después de meterlo al set? ¿Cómo lo resuelve un `@dataclass(frozen=True)`?"
+    },
+    {
+      "id": "i18",
+      "tipo": "quiz",
+      "titulo": "is vs == y la caché de enteros",
+      "dificultad": "media",
+      "tema": "identidad vs igualdad",
+      "roadmap": "is vs == (caché -5..256)",
+      "enunciado": "a = int(\"256\")\nb = int(\"256\")\nc = int(\"257\")\nd = int(\"257\")\nprint(a is b, c is d, c == d)",
+      "opciones": [
+        "True True True",
+        "True False True",
+        "False False True",
+        "True False False"
+      ],
+      "correcta": 1,
+      "explicacion": "CPython preconstruye los enteros de -5 a 256 y los reutiliza, así que `int('256')` devuelve siempre el mismo objeto (`is` -> True). 257 se crea como objeto nuevo cada vez (`is` -> False), pero `==` compara valores (True). Ese detalle es de implementación: nunca uses `is` para comparar números o strings; reserva `is` para `None`, `True`/`False` y centinelas.",
+      "pregunta_entrevistador": "¿Cuándo SÍ se usa `is`? ¿Por qué `x is None` y no `x == None`? ¿Qué pasa con `a = 257; b = 257; a is b` en un mismo script?"
+    },
+    {
+      "id": "i19",
+      "tipo": "quiz",
+      "titulo": "copy vs deepcopy",
+      "dificultad": "media",
+      "tema": "copia de objetos",
+      "roadmap": "copy vs deepcopy",
+      "enunciado": "import copy\na = [[1], [2]]\nb = copy.copy(a)\nc = copy.deepcopy(a)\na[0].append(9)\nprint(b[0], c[0])",
+      "opciones": [
+        "[1] [1]",
+        "[1, 9] [1]",
+        "[1, 9] [1, 9]",
+        "[1] [1, 9]"
+      ],
+      "correcta": 1,
+      "explicacion": "`copy.copy` hace una copia superficial: `b` es una lista nueva pero sus elementos son los MISMOS objetos que los de `a`, así que ve el `9`. `deepcopy` duplica recursivamente, por lo que `c[0]` es una lista independiente y sigue siendo `[1]`.",
+      "pregunta_entrevistador": "¿`a[:]`, `list(a)` y `a.copy()` son superficiales o profundas? ¿Cómo se comporta deepcopy con referencias circulares?"
+    },
+    {
+      "id": "i20",
+      "tipo": "quiz",
+      "titulo": "Scope LEGB con global y nonlocal",
+      "dificultad": "media",
+      "tema": "scope",
+      "roadmap": "Scope LEGB y closures",
+      "enunciado": "x = \"global\"\n\ndef f():\n    x = \"enclosing\"\n    def g():\n        nonlocal x\n        x = \"modificada\"\n    g()\n    print(x)\n\ndef h():\n    global x\n    x = \"cambiada\"\n\nf()\nprint(x)\nh()\nprint(x)",
+      "opciones": [
+        "modificada / global / cambiada",
+        "enclosing / global / cambiada",
+        "modificada / modificada / cambiada",
+        "UnboundLocalError"
+      ],
+      "correcta": 0,
+      "explicacion": "`nonlocal x` en `g` reasigna la `x` de `f` (la envolvente), así que `f` imprime 'modificada' y la global NO se toca (sigue 'global'). `h` usa `global x` y sí reasigna la global, por eso el último print da 'cambiada'. Orden de búsqueda: Local, Enclosing, Global, Built-in.",
+      "pregunta_entrevistador": "¿Qué pasa si quito `nonlocal x` de `g`? ¿Y si dentro de una función imprimo `x` y después hago `x = 1` en la misma función?"
+    },
+    {
+      "id": "i21",
+      "tipo": "quiz",
+      "titulo": "Generador agotado",
+      "dificultad": "media",
+      "tema": "generadores",
+      "roadmap": "Generadores/yield vs lista",
+      "enunciado": "g = (x * 2 for x in range(3))\nprint(list(g), list(g), sum(g))",
+      "opciones": [
+        "[0, 2, 4] [0, 2, 4] 6",
+        "[0, 2, 4] [] 0",
+        "[0, 2, 4] [] 6",
+        "Error: StopIteration"
+      ],
+      "correcta": 1,
+      "explicacion": "Un generador es un iterador de un solo uso: la primera `list(g)` lo consume entero; las siguientes ven un iterador agotado y devuelven `[]` (y `sum` de nada es 0). No lanza error porque `list` y `sum` manejan `StopIteration` internamente. Si necesitas recorrer varias veces, guarda una lista o recrea el generador.",
+      "pregunta_entrevistador": "¿Cuándo prefieres un generador a una lista? ¿Qué diferencia hay entre un iterable y un iterador? ¿`range(3)` también se agota?"
+    },
+    {
+      "id": "i22",
+      "tipo": "quiz",
+      "titulo": "staticmethod vs classmethod",
+      "dificultad": "media",
+      "tema": "clases",
+      "roadmap": "@staticmethod vs @classmethod",
+      "enunciado": "class A:\n    @classmethod\n    def c(cls):\n        return cls.__name__\n    @staticmethod\n    def s():\n        return \"A\"\n\nclass B(A):\n    pass\n\nprint(B.c(), B.s())",
+      "opciones": [
+        "A A",
+        "B B",
+        "B A",
+        "A B"
+      ],
+      "correcta": 2,
+      "explicacion": "`@classmethod` recibe la clase por la que se llama: `B.c()` pasa `cls=B`, así que devuelve 'B'. `@staticmethod` no recibe nada y no sabe nada de la clase; devuelve su valor fijo 'A'. Por eso los constructores alternativos son classmethods (respetan subclases) y las utilidades puras son staticmethods.",
+      "pregunta_entrevistador": "¿Cuándo usarías un método de instancia, uno de clase y uno estático? ¿Un staticmethod podría ser una función de módulo? ¿Cuál es la diferencia práctica?"
+    },
+    {
+      "id": "i23",
+      "tipo": "quiz",
+      "titulo": "Complejidad de operaciones",
+      "dificultad": "media",
+      "tema": "Big-O",
+      "roadmap": "Complejidad (append O(1), dict O(1), in lista O(n))",
+      "enunciado": "¿Cuál de estas afirmaciones sobre los costes en CPython es CORRECTA?",
+      "opciones": [
+        "`x in lista` es O(1) y `x in set` es O(n)",
+        "`lista.append(x)` es O(1) amortizado, `lista.insert(0, x)` es O(n) y `x in set` es O(1) promedio",
+        "`lista.insert(0, x)` es O(1) porque Python guarda un puntero al inicio",
+        "`dict[k]` es O(log n) porque usa un árbol balanceado"
+      ],
+      "correcta": 1,
+      "explicacion": "La lista es un array dinámico: `append` es O(1) amortizado (redimensiona de vez en cuando), pero `insert(0, x)` y `pop(0)` desplazan todos los elementos: O(n) (para eso existe `deque`). `x in lista` es búsqueda lineal O(n); set y dict usan tabla hash: pertenencia y acceso O(1) promedio (O(n) en el peor caso con colisiones masivas).",
+      "pregunta_entrevistador": "¿Cómo conviertes un O(n²) en O(n) con un set (p. ej. Two Sum)? ¿Cuál es el peor caso de un dict y cuándo aparece? ¿Qué coste tiene `s[i:j]` en una lista?"
+    },
+    {
+      "id": "i24",
+      "tipo": "quiz",
+      "titulo": "Closures en loop con lambda (late binding)",
+      "dificultad": "dificil",
+      "tema": "closures",
+      "roadmap": "Scope LEGB y closures",
+      "enunciado": "funcs = [lambda: i for i in range(3)]\nprint([f() for f in funcs])",
+      "opciones": [
+        "[0, 1, 2]",
+        "[2, 2, 2]",
+        "[3, 3, 3]",
+        "Error: i no está definida"
+      ],
+      "correcta": 1,
+      "explicacion": "Los closures capturan la VARIABLE `i`, no su valor en ese momento (late binding). Cuando se llaman las lambdas, el bucle ya terminó y `i` vale 2 (en una comprensión `i` vive en su propio scope, pero las 3 lambdas comparten la misma celda). Solución: fijar el valor con un default: `lambda i=i: i`, o con `functools.partial`, o una fábrica de funciones.",
+      "pregunta_entrevistador": "¿Cómo lo arreglas con un argumento por defecto? ¿Por qué eso funciona (los defaults se evalúan al definir)? ¿Pasa lo mismo con un `for` normal fuera de comprensión?"
+    },
+    {
+      "id": "i25",
+      "tipo": "quiz",
+      "titulo": "try / except / else / finally con return",
+      "dificultad": "dificil",
+      "tema": "excepciones",
+      "roadmap": "try/except/else/finally",
+      "enunciado": "def f():\n    try:\n        print(\"try\")\n        return 1\n    except ValueError:\n        print(\"except\")\n    else:\n        print(\"else\")\n    finally:\n        print(\"finally\")\n\nprint(f())",
+      "opciones": [
+        "try / else / finally / 1",
+        "try / finally / 1",
+        "try / finally / else / 1",
+        "try / except / finally / 1"
+      ],
+      "correcta": 1,
+      "explicacion": "El `return 1` del `try` ya se decidió, pero `finally` SIEMPRE se ejecuta antes de que la función realmente retorne. `else` solo corre si el `try` termina normalmente sin excepción Y sin haber salido por `return`/`break`, por lo que aquí no se ejecuta. `except` no corre porque no hubo excepción. Salida: try, finally, 1. (Un `return` dentro de `finally` sobrescribiría el valor y se tragaría excepciones.)",
+      "pregunta_entrevistador": "¿Qué pasa si `finally` también hace `return`? ¿Para qué sirve `else` frente a poner ese código dentro del `try`? ¿Por qué evitar `except:` desnudo?"
+    }
+  ]
+}

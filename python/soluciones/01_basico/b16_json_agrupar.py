@@ -1,0 +1,60 @@
+r"""b16 - Leer JSON y agrupar (media)
+
+Implementa:
+
+1. `agrupar_por(ruta_json, clave)`: lee un archivo JSON con una lista de dicts y devuelve un dict `{valor_de_clave: [nombres...]}` agrupando el campo `'nombre'` de cada elemento segun `clave`. Mantiene el orden de aparicion.
+   Para `[{'nombre': 'Ana', 'ciudad': 'Lima'}, {'nombre': 'Luis', 'ciudad': 'Lima'}, {'nombre': 'Eva', 'ciudad': 'Cusco'}]` y `clave='ciudad'` -> `{'Lima': ['Ana', 'Luis'], 'Cusco': ['Eva']}`
+2. `a_json(d)`: devuelve el dict como string JSON con claves ordenadas y sin escapar acentos (`json.dumps`, `sort_keys=True`, `ensure_ascii=False`).
+3. `de_json(texto)`: convierte el string JSON de vuelta a objeto Python (`json.loads`).
+
+Casos borde: lista vacia -> `{}`.
+"""
+
+import json
+
+
+def agrupar_por(ruta_json, clave):
+    with open(ruta_json, encoding="utf-8") as f:
+        datos = json.load(f)
+    grupos = {}
+    for item in datos:
+        grupos.setdefault(item[clave], []).append(item["nombre"])
+    return grupos
+
+
+def a_json(d):
+    return json.dumps(d, sort_keys=True, ensure_ascii=False)
+
+
+def de_json(texto):
+    return json.loads(texto)
+
+# Explicacion: load/dump trabajan con archivos; loads/dumps con strings (la 's' es 'string'). JSON null/true/false se mapean a None/True/False. Agrupar es O(n). setdefault devuelve la lista existente o crea una vacia.
+# Pregunta del entrevistador: ¿Que tipos de Python NO son serializables a JSON? (set, tuple se vuelve lista, datetime, objetos propios: hay que usar default= o convertirlos.)
+
+if __name__ == "__main__":
+    import json
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        ruta = os.path.join(d, "gente.json")
+        datos = [
+            {"nombre": "Ana", "ciudad": "Lima"},
+            {"nombre": "Luis", "ciudad": "Lima"},
+            {"nombre": "Eva", "ciudad": "Cusco"},
+        ]
+        with open(ruta, "w", encoding="utf-8") as f:
+            json.dump(datos, f)
+        assert agrupar_por(ruta, "ciudad") == {"Lima": ["Ana", "Luis"], "Cusco": ["Eva"]}
+        assert list(agrupar_por(ruta, "ciudad")) == ["Lima", "Cusco"], "orden de aparicion"
+        vacio = os.path.join(d, "vacio.json")
+        with open(vacio, "w", encoding="utf-8") as f:
+            json.dump([], f)
+        assert agrupar_por(vacio, "ciudad") == {}, "lista vacia"
+
+    assert a_json({"b": 1, "a": "ñ"}) == '{"a": "ñ", "b": 1}'
+    assert a_json({}) == '{}'
+    assert de_json('{"a": [1, 2, null, true]}') == {"a": [1, 2, None, True]}
+    assert de_json('[]') == []
+    print("OK: todos los tests pasan")

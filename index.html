@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Práctica Python - Entrevista</title>
+<meta name="description" content="Práctica interactiva de Python para entrevista técnica: ejercicios con tests que se ejecutan en el navegador.">
+<style>
+:root {
+  --bg: #0d1117; --panel: #161b22; --panel2: #1c232d; --borde: #30363d;
+  --texto: #d7dde4; --suave: #8b949e; --acento: #3fb950; --acento-t: #0d1117;
+  --link: #58a6ff; --ok: #3fb950; --mal: #f85149; --aviso: #d29922;
+  --code-bg: #010409; --facil: #3fb950; --media: #d29922; --dificil: #f85149; --extra: #bc8cff;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --gutter: 16px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f6f8fa; --panel: #ffffff; --panel2: #eef1f4; --borde: #d0d7de;
+    --texto: #1f2328; --suave: #59636e; --acento: #1a7f37; --acento-t: #ffffff;
+    --link: #0969da; --ok: #1a7f37; --mal: #cf222e; --aviso: #9a6700;
+    --code-bg: #f0f3f6; --facil: #1a7f37; --media: #9a6700; --dificil: #cf222e; --extra: #8250df;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--texto); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; overflow-x: hidden; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+code, pre, textarea { font-family: var(--mono); }
+code { background: var(--code-bg); border: 1px solid var(--borde); border-radius: 4px; padding: 0 4px; font-size: .92em; }
+pre { background: var(--code-bg); border: 1px solid var(--borde); border-radius: 6px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; font-size: 13.5px; line-height: 1.5; }
+pre code { border: 0; padding: 0; background: none; }
+
+.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px var(--gutter); background: var(--panel); border-bottom: 1px solid var(--borde); }
+.top h1 { font: 700 16px var(--mono); margin: 0; color: var(--acento); }
+.top h1::before { content: "$ "; color: var(--suave); }
+.spacer { flex: 1; }
+.global { display: flex; align-items: center; gap: 8px; font: 12px var(--mono); color: var(--suave); }
+.bar { width: 120px; height: 8px; background: var(--panel2); border: 1px solid var(--borde); border-radius: 4px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--acento); transition: width .3s; }
+.btn { background: var(--panel2); border: 1px solid var(--borde); border-radius: 6px; padding: 6px 12px; }
+.btn:hover { border-color: var(--suave); }
+.btn.primario { background: var(--acento); color: var(--acento-t); border-color: var(--acento); font-weight: 600; }
+.btn.peligro { color: var(--mal); }
+.btn[disabled] { opacity: .5; cursor: progress; }
+.btn.chico { padding: 2px 8px; font-size: 12px; }
+
+.layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); min-height: calc(100vh - 52px); }
+aside { border-right: 1px solid var(--borde); background: var(--panel); padding: 12px var(--gutter); overflow-y: auto;
+  position: sticky; top: 52px; height: calc(100vh - 52px); }
+.filtros { display: grid; gap: 8px; margin-bottom: 12px; }
+.filtros input, .filtros select { width: 100%; background: var(--bg); border: 1px solid var(--borde); border-radius: 6px; padding: 6px 8px; }
+details.nivel { margin-bottom: 8px; border: 1px solid var(--borde); border-radius: 6px; background: var(--bg); }
+details.nivel > summary { cursor: pointer; padding: 8px 10px; font-weight: 600; display: flex; align-items: center; gap: 8px; list-style: none; }
+details.nivel > summary::-webkit-details-marker { display: none; }
+details.nivel > summary::before { content: "▸"; color: var(--suave); }
+details.nivel[open] > summary::before { content: "▾"; }
+.nivel .cnt { margin-left: auto; font: 12px var(--mono); color: var(--suave); }
+.nivel .bar { width: auto; margin: 0 10px 8px; height: 5px; }
+.nivel .nd { padding: 0 10px 10px; color: var(--suave); font-size: 13px; }
+ul.lista { list-style: none; margin: 0; padding: 0 4px 6px; }
+ul.lista li { margin: 0; }
+.item { width: 100%; text-align: left; background: none; border: 0; border-radius: 4px; padding: 5px 8px; display: flex; gap: 8px; align-items: baseline; }
+.item:hover { background: var(--panel2); }
+.item[aria-current="true"] { background: var(--panel2); box-shadow: inset 3px 0 0 var(--acento); }
+.item .id { font: 12px var(--mono); color: var(--suave); min-width: 28px; }
+.item .t { flex: 1; font-size: 13.5px; }
+.item .ck { color: var(--ok); font-weight: 700; min-width: 1em; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; align-self: center; }
+.dot.facil { background: var(--facil); } .dot.media { background: var(--media); }
+.dot.dificil { background: var(--dificil); } .dot.extra { background: var(--extra); }
+
+main { padding: 16px var(--gutter) 64px; min-width: 0; max-width: 980px; width: 100%; }
+.aviso { border: 1px solid var(--aviso); background: var(--panel); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
+.aviso code { word-break: break-word; }
+.entrevista { border: 1px solid var(--borde); border-radius: 6px; background: var(--panel); margin-bottom: 16px; }
+.entrevista > summary { cursor: pointer; padding: 8px 12px; font-weight: 600; }
+.entrevista .cuerpo { padding: 0 12px 12px; }
+.entrevista ol { margin: 8px 0 0; padding-left: 20px; }
+.entrevista li { margin: 4px 0; }
+.crono { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 12px; border-top: 1px solid var(--borde); }
+.crono .tiempo { font: 700 22px var(--mono); min-width: 70px; }
+.crono .tiempo.fin { color: var(--mal); }
+
+h2.titulo { margin: 0 0 8px; font-size: 22px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip { font: 12px var(--mono); border: 1px solid var(--borde); border-radius: 999px; padding: 2px 10px; color: var(--suave); }
+.chip.facil { color: var(--facil); border-color: var(--facil); } .chip.media { color: var(--media); border-color: var(--media); }
+.chip.dificil { color: var(--dificil); border-color: var(--dificil); } .chip.extra { color: var(--extra); border-color: var(--extra); }
+.chip.resuelto { color: var(--ok); border-color: var(--ok); }
+.enunciado { white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 14px; }
+textarea.editor { width: 100%; min-height: 260px; resize: vertical; background: var(--code-bg); color: var(--texto);
+  border: 1px solid var(--borde); border-radius: 6px; padding: 12px; font-size: 13.5px; line-height: 1.5; tab-size: 4; white-space: pre; overflow: auto; }
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.caja { border: 1px solid var(--borde); border-radius: 6px; background: var(--panel); padding: 10px 12px; margin: 10px 0; overflow-wrap: anywhere; }
+.caja h3 { margin: 0 0 6px; font-size: 14px; }
+.caja.ok { border-color: var(--ok); } .caja.mal { border-color: var(--mal); } .caja.aviso { border-color: var(--aviso); }
+.caja pre { margin-top: 6px; }
+.salida { white-space: pre-wrap; font: 13px var(--mono); }
+.pista { margin: 4px 0; }
+.nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 24px; }
+.opciones { display: grid; gap: 8px; margin: 12px 0; }
+.opcion { text-align: left; background: var(--panel); border: 1px solid var(--borde); border-radius: 6px; padding: 8px 12px; font-family: var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.opcion:hover:not([disabled]) { border-color: var(--link); }
+.opcion.bien { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); }
+.opcion.mal { border-color: var(--mal); background: color-mix(in srgb, var(--mal) 15%, transparent); }
+.cargando { color: var(--suave); }
+.spin { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--borde); border-top-color: var(--acento); border-radius: 50%; animation: gira .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+@keyframes gira { to { transform: rotate(360deg); } }
+.menu-btn { display: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+@media (max-width: 820px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  aside { position: static; height: auto; max-height: 60vh; border-right: 0; border-bottom: 1px solid var(--borde); }
+  aside.cerrada { display: none; }
+  .menu-btn { display: inline-block; }
+  .bar { width: 70px; }
+  .top { position: static; }
+}
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } .bar > i { transition: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="btn menu-btn" id="menuBtn" aria-label="Mostrar u ocultar la lista de ejercicios" aria-expanded="true" aria-controls="lateral">☰ Ejercicios</button>
+  <h1>practica-python</h1>
+  <span class="spacer"></span>
+  <div class="global" role="group" aria-label="Progreso global">
+    <span id="globalTxt">0/0</span>
+    <div class="bar" role="progressbar" aria-label="Progreso global" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="globalBar"><i></i></div>
+  </div>
+  <button class="btn peligro chico" id="resetBtn" aria-label="Reiniciar todo el progreso">Reiniciar progreso</button>
+</header>
+
+<div class="layout">
+  <aside id="lateral" aria-label="Lista de ejercicios">
+    <div class="filtros">
+      <label class="sr" for="buscar">Buscar por texto o tema</label>
+      <input id="buscar" type="search" placeholder="Buscar texto o tema…" autocomplete="off">
+      <label class="sr" for="dificultad">Filtrar por dificultad</label>
+      <select id="dificultad">
+        <option value="">Todas las dificultades</option>
+        <option value="facil">facil</option>
+        <option value="media">media</option>
+        <option value="dificil">dificil</option>
+        <option value="extra">extra</option>
+      </select>
+    </div>
+    <nav id="niveles" aria-label="Niveles"></nav>
+  </aside>
+
+  <main id="main">
+    <div id="avisos"></div>
+    <details class="entrevista" id="panelEntrevista" open>
+      <summary>Cómo resolver EN ENTREVISTA (5 pasos)</summary>
+      <div class="cuerpo">
+        <ol>
+          <li><strong>Repite el problema</strong> con tus palabras y pregunta por casos borde (vacío, un elemento, duplicados, negativos).</li>
+          <li><strong>Solución ingenua</strong> en voz alta, con su Big-O.</li>
+          <li><strong>Mejora</strong> y explica el trade-off (tiempo vs. memoria).</li>
+          <li><strong>Codea hablando</strong>: cuenta lo que haces mientras escribes.</li>
+          <li><strong>Prueba</strong> con un caso normal, vacío y de un solo elemento.</li>
+        </ol>
+      </div>
+      <div class="crono" role="group" aria-label="Cronómetro de 20 minutos">
+        <span class="tiempo" id="tiempo" role="timer" aria-live="off">20:00</span>
+        <button class="btn" id="cronoIni" aria-label="Iniciar o pausar cronómetro">Iniciar</button>
+        <button class="btn" id="cronoRes" aria-label="Reiniciar cronómetro">Reiniciar</button>
+        <span style="color:var(--suave);font-size:13px">Inténtalo 20 min antes de ver la solución.</span>
+      </div>
+    </details>
+    <section id="vista" aria-live="polite"></section>
+  </main>
+</div>
+
+<script>
+"use strict";
+var ARCHIVOS = [
+  { file: "data/01_basico.json", nombre: "Básico" },
+  { file: "data/02_intermedio.json", nombre: "Intermedio" },
+  { file: "data/03_logica.json", nombre: "Lógica" },
+  { file: "data/04_avanzado.json", nombre: "Avanzado" }
+];
+var PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
+var LS_KEY = "practica-python-v1";
+var CRONO_SEG = 20 * 60;
+
+var niveles = [];      // {nombre, desc, ejercicios, ok}
+var porId = {};        // id -> {ej, nivel}
+var orden = [];        // ids en orden global
+var actualId = null;
+var prog = { codigo: {}, resueltos: {}, pistas: {}, vistaSol: {}, quiz: {} };
+
+/* ---------- utilidades ---------- */
+function $(id) { return document.getElementById(id); }
+function esc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function rich(s) { // escapa, convierte `x` en <code>; los saltos los respeta CSS (pre-wrap)
+  return esc(s).replace(/`([^`\n]+)`/g, "<code>$1</code>");
+}
+function el(tag, attrs, html) {
+  var e = document.createElement(tag);
+  if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+
+/* ---------- progreso (localStorage) ---------- */
+function cargarProg() {
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (raw) { var o = JSON.parse(raw); for (var k in prog) if (o && o[k]) prog[k] = o[k]; }
+  } catch (e) { /* sin almacenamiento: seguimos en memoria */ }
+}
+function guardarProg() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(prog)); } catch (e) { /* ignorar */ }
+}
+
+/* ---------- carga de datos ---------- */
+function cargarDatos() {
+  var aviso = $("avisos");
+  return Promise.all(ARCHIVOS.map(function (a) {
+    return fetch(a.file, { cache: "no-cache" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (j) {
+      return { nombre: j.nivel || a.nombre, desc: j.descripcion || "", ejercicios: j.ejercicios || [], ok: true, file: a.file };
+    }).catch(function (e) {
+      return { nombre: a.nombre, desc: "", ejercicios: [], ok: false, file: a.file, err: String(e && e.message || e) };
+    });
+  })).then(function (res) {
+    niveles = res;
+    res.forEach(function (n) {
+      n.ejercicios.forEach(function (ej) {
+        if (!ej || !ej.id || porId[ej.id]) return;
+        porId[ej.id] = { ej: ej, nivel: n };
+        orden.push(ej.id);
+      });
+    });
+    var fallos = res.filter(function (n) { return !n.ok; });
+    if (location.protocol === "file:" && fallos.length) {
+      aviso.appendChild(el("div", { "class": "aviso", role: "alert" },
+        "No se pudieron cargar los datos desde <code>file://</code>. Ábrelo con <code>python -m http.server</code> y entra a <code>http://localhost:8000</code>."));
+    }
+  });
+}
+
+/* ---------- sidebar ---------- */
+function coincide(ej) {
+  var d = $("dificultad").value;
+  var q = $("buscar").value.trim().toLowerCase();
+  if (d && ej.dificultad !== d) return false;
+  if (q) {
+    var h = [ej.titulo, ej.tema, ej.roadmap, ej.id, ej.dificultad].join(" ").toLowerCase();
+    if (h.indexOf(q) < 0) return false;
+  }
+  return true;
+}
+function renderSidebar() {
+  var cont = $("niveles");
+  var abiertos = {};
+  Array.prototype.forEach.call(cont.querySelectorAll("details"), function (d) { abiertos[d.getAttribute("data-n")] = d.open; });
+  var filtrando = $("buscar").value.trim() || $("dificultad").value;
+  cont.innerHTML = "";
+  niveles.forEach(function (n, i) {
+    var d = el("details", { "class": "nivel", "data-n": i });
+    var total = n.ejercicios.length;
+    var hechos = n.ejercicios.filter(function (e) { return prog.resueltos[e.id]; }).length;
+    d.open = abiertos.hasOwnProperty(i) ? abiertos[i] : true;
+    if (filtrando) d.open = true;
+    d.appendChild(el("summary", null, "<span>" + esc(n.nombre) + "</span><span class=\"cnt\">" + hechos + "/" + total + "</span>"));
+    var pct = total ? Math.round(hechos * 100 / total) : 0;
+    d.appendChild(el("div", { "class": "bar", role: "progressbar", "aria-label": "Progreso de " + n.nombre, "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": pct },
+      "<i style=\"width:" + pct + "%\"></i>"));
+    if (!n.ok) {
+      d.appendChild(el("div", { "class": "nd" }, "no disponible"));
+    } else {
+      var ul = el("ul", { "class": "lista" });
+      var vis = n.ejercicios.filter(coincide);
+      vis.forEach(function (ej) {
+        var li = el("li");
+        var b = el("button", { "class": "item", "data-id": ej.id, "aria-current": ej.id === actualId ? "true" : "false",
+          "aria-label": ej.titulo + ", " + ej.dificultad + (prog.resueltos[ej.id] ? ", resuelto" : "") });
+        b.innerHTML = "<span class=\"id\">" + esc(ej.id) + "</span><span class=\"t\">" + esc(ej.titulo) +
+          "</span><span class=\"dot " + esc(ej.dificultad) + "\" title=\"" + esc(ej.dificultad) + "\"></span><span class=\"ck\">" + (prog.resueltos[ej.id] ? "✓" : "") + "</span>";
+        b.addEventListener("click", function () { irA(ej.id); });
+        li.appendChild(b); ul.appendChild(li);
+      });
+      if (!vis.length) ul.appendChild(el("li", { "class": "nd" }, "Sin resultados"));
+      d.appendChild(ul);
+    }
+    cont.appendChild(d);
+  });
+  actualizarGlobal();
+}
+function actualizarGlobal() {
+  var total = orden.length;
+  var hechos = orden.filter(function (id) { return prog.resueltos[id]; }).length;
+  var pct = total ? Math.round(hechos * 100 / total) : 0;
+  $("globalTxt").textContent = hechos + "/" + total + " (" + pct + "%)";
+  var b = $("globalBar"); b.setAttribute("aria-valuenow", pct); b.firstElementChild.style.width = pct + "%";
+}
+
+/* ---------- navegación ---------- */
+function irA(id) {
+  if (location.hash.replace("#", "") === id) mostrar(id);
+  else location.hash = id;
+  if (window.matchMedia("(max-width: 820px)").matches) cerrarMenu(true);
+}
+function cerrarMenu(cerrar) {
+  $("lateral").classList.toggle("cerrada", cerrar);
+  $("menuBtn").setAttribute("aria-expanded", cerrar ? "false" : "true");
+}
+window.addEventListener("hashchange", function () {
+  var id = location.hash.replace("#", "");
+  if (porId[id]) mostrar(id);
+});
+
+/* ---------- vista de ejercicio ---------- */
+function mostrar(id) {
+  var info = porId[id];
+  if (!info) return;
+  var ej = info.ej;
+  actualId = id;
+  cronoReset();
+  var v = $("vista");
+  v.innerHTML = "";
+  var h = el("h2", { "class": "titulo" }, esc(ej.id.toUpperCase()) + " · " + esc(ej.titulo));
+  h.setAttribute("tabindex", "-1");
+  v.appendChild(h);
+  var chips = "<span class=\"chip " + esc(ej.dificultad) + "\">" + esc(ej.dificultad) + "</span>" +
+    "<span class=\"chip\">tema: " + esc(ej.tema) + "</span>" +
+    (ej.roadmap ? "<span class=\"chip\">roadmap: " + esc(ej.roadmap) + "</span>" : "") +
+    "<span class=\"chip\">" + esc(info.nivel.nombre) + "</span>" +
+    "<span class=\"chip resuelto\" id=\"chipRes\"" + (prog.resueltos[id] ? "" : " hidden") + ">✓ resuelto</span>";
+  v.appendChild(el("div", { "class": "chips" }, chips));
+  if (ej.tipo === "quiz") vistaQuiz(v, ej); else vistaCodigo(v, ej);
+  var i = orden.indexOf(id);
+  var nav = el("div", { "class": "nav" });
+  var ant = el("button", { "class": "btn", "aria-label": "Ejercicio anterior" }, "← Anterior");
+  var sig = el("button", { "class": "btn", "aria-label": "Ejercicio siguiente" }, "Siguiente →");
+  ant.disabled = i <= 0; sig.disabled = i >= orden.length - 1;
+  ant.addEventListener("click", function () { irA(orden[i - 1]); });
+  sig.addEventListener("click", function () { irA(orden[i + 1]); });
+  nav.appendChild(ant); nav.appendChild(sig);
+  v.appendChild(nav);
+  renderSidebar();
+  window.scrollTo(0, 0);
+}
+function marcarResuelto(id) {
+  if (!prog.resueltos[id]) { prog.resueltos[id] = true; guardarProg(); }
+  var c = $("chipRes"); if (c) c.hidden = false;
+  renderSidebar();
+}
+
+function vistaQuiz(v, ej) {
+  v.appendChild(el("div", { "class": "enunciado" }, ""));
+  v.lastChild.innerHTML = "Código / pregunta:";
+  v.appendChild(el("pre", null, "<code>" + esc(ej.enunciado) + "</code>"));
+  var ops = el("div", { "class": "opciones", role: "group", "aria-label": "Opciones" });
+  var fb = el("div", { "aria-live": "polite" });
+  var elegida = prog.quiz[ej.id];
+  (ej.opciones || []).forEach(function (o, i) {
+    var b = el("button", { "class": "opcion" });
+    b.textContent = o;
+    b.addEventListener("click", function () { responder(i); });
+    ops.appendChild(b);
+  });
+  function responder(i) {
+    prog.quiz[ej.id] = i; guardarProg();
+    var ok = i === ej.correcta;
+    Array.prototype.forEach.call(ops.children, function (b, k) {
+      b.classList.remove("bien", "mal");
+      if (k === ej.correcta && (ok || true)) b.classList.add("bien");
+      if (k === i && !ok) b.classList.add("mal");
+    });
+    fb.innerHTML = "";
+    var caja = el("div", { "class": "caja " + (ok ? "ok" : "mal") });
+    caja.innerHTML = "<h3>" + (ok ? "✅ Correcto" : "❌ Incorrecto") + "</h3><div class=\"enunciado\" style=\"margin:0\">" + rich(ej.explicacion || "") + "</div>";
+    fb.appendChild(caja);
+    if (ok) marcarResuelto(ej.id);
+  }
+  v.appendChild(ops); v.appendChild(fb);
+  if (elegida != null) responder(elegida);
+}
+
+function vistaCodigo(v, ej) {
+  var id = ej.id;
+  v.appendChild(el("div", { "class": "enunciado" }, rich(ej.enunciado)));
+  var ta = el("textarea", { "class": "editor", id: "editor", spellcheck: "false", autocapitalize: "off", autocomplete: "off",
+    "aria-label": "Editor de código Python. Tab inserta 4 espacios, Ctrl+Enter ejecuta los tests." });
+  ta.value = prog.codigo[id] != null ? prog.codigo[id] : (ej.plantilla || "");
+  ta.addEventListener("input", function () { prog.codigo[id] = ta.value; guardarProg(); });
+  ta.addEventListener("keydown", function (e) {
+    if (e.key === "Tab" && !e.shiftKey) {
+      e.preventDefault();
+      var s = ta.selectionStart, f = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + "    " + ta.value.slice(f);
+      ta.selectionStart = ta.selectionEnd = s + 4;
+      ta.dispatchEvent(new Event("input"));
+    } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault(); ejecutar();
+    }
+  });
+  v.appendChild(ta);
+
+  var acc = el("div", { "class": "acciones" });
+  var bRun = el("button", { "class": "btn primario", id: "bRun", "aria-label": "Ejecutar tests (Ctrl+Enter)" }, "▶ Ejecutar tests");
+  var bPista = el("button", { "class": "btn", "aria-label": "Mostrar una pista" }, "Pista");
+  var bSol = el("button", { "class": "btn", "aria-label": "Ver solución" }, "Ver solución");
+  var bRes = el("button", { "class": "btn", "aria-label": "Reiniciar código a la plantilla" }, "Reiniciar código");
+  acc.appendChild(bRun); acc.appendChild(bPista); acc.appendChild(bSol); acc.appendChild(bRes);
+  v.appendChild(acc);
+
+  var salida = el("div", { id: "salida", "aria-live": "polite" });
+  var pistas = el("div", { id: "pistas" });
+  var confirma = el("div");
+  var solBox = el("div");
+  var extra = el("div");
+  v.appendChild(salida); v.appendChild(pistas); v.appendChild(confirma); v.appendChild(solBox); v.appendChild(extra);
+
+  function pintarPistas() {
+    pistas.innerHTML = "";
+    var n = prog.pistas[id] || 0;
+    var lista = ej.pistas || [];
+    if (n > 0) {
+      var c = el("div", { "class": "caja aviso" });
+      c.innerHTML = "<h3>Pistas (" + Math.min(n, lista.length) + "/" + lista.length + ")</h3>";
+      for (var i = 0; i < n && i < lista.length; i++) c.appendChild(el("div", { "class": "pista" }, (i + 1) + ". " + rich(lista[i])));
+      pistas.appendChild(c);
+    }
+    bPista.disabled = n >= lista.length;
+    if (!lista.length) bPista.textContent = "Sin pistas";
+  }
+  function pintarExtra() {
+    extra.innerHTML = "";
+    if (!(prog.resueltos[id] || prog.vistaSol[id])) return;
+    var c = el("div", { "class": "caja" });
+    c.innerHTML = "<h3>Explicación</h3><div class=\"enunciado\" style=\"margin:0\">" + rich(ej.explicacion || "") + "</div>";
+    extra.appendChild(c);
+    if (ej.pregunta_entrevistador) {
+      var q = el("div", { "class": "caja aviso" });
+      q.innerHTML = "<h3>Repregunta del entrevistador</h3><div class=\"enunciado\" style=\"margin:0\">" + rich(ej.pregunta_entrevistador) + "</div>";
+      extra.appendChild(q);
+    }
+  }
+  function pintarSol() {
+    solBox.innerHTML = "";
+    if (!prog.vistaSol[id]) return;
+    var c = el("div", { "class": "caja" });
+    c.innerHTML = "<h3>Solución</h3>";
+    c.appendChild(el("pre", null, "<code>" + esc(ej.solucion) + "</code>"));
+    solBox.appendChild(c);
+  }
+  bPista.addEventListener("click", function () {
+    var lista = ej.pistas || [];
+    var n = prog.pistas[id] || 0;
+    if (n < lista.length) { prog.pistas[id] = n + 1; guardarProg(); pintarPistas(); }
+  });
+  bSol.addEventListener("click", function () {
+    if (prog.vistaSol[id]) return;
+    confirma.innerHTML = "";
+    var c = el("div", { "class": "caja aviso", role: "alertdialog", "aria-label": "Confirmar ver solución" });
+    c.innerHTML = "<h3>¿Seguro que quieres ver la solución?</h3><p style=\"margin:4px 0 8px\">Inténtalo al menos 20 minutos antes de mirarla: el esfuerzo es lo que fija el aprendizaje.</p>";
+    var si = el("button", { "class": "btn primario" }, "Sí, mostrar solución");
+    var no = el("button", { "class": "btn" }, "Seguir intentando");
+    var fila = el("div", { "class": "acciones" }); fila.appendChild(si); fila.appendChild(no); c.appendChild(fila);
+    si.addEventListener("click", function () {
+      prog.vistaSol[id] = true; guardarProg(); confirma.innerHTML = ""; pintarSol(); pintarExtra();
+    });
+    no.addEventListener("click", function () { confirma.innerHTML = ""; ta.focus(); });
+    confirma.appendChild(c); no.focus();
+  });
+  bRes.addEventListener("click", function () {
+    ta.value = ej.plantilla || ""; prog.codigo[id] = ta.value; guardarProg();
+    salida.innerHTML = ""; ta.focus();
+  });
+  bRun.addEventListener("click", ejecutar);
+
+  function ejecutar() {
+    if (bRun.disabled) return;
+    bRun.disabled = true;
+    salida.innerHTML = "";
+    var estado = el("div", { "class": "caja cargando" });
+    salida.appendChild(estado);
+    estado.innerHTML = pyListo ? "<span class=\"spin\"></span>Ejecutando…" : "<span class=\"spin\"></span>Cargando Python (Pyodide, ~10 MB la primera vez)…";
+    cargarPyodide().then(function (py) {
+      estado.innerHTML = "<span class=\"spin\"></span>Ejecutando…";
+      return new Promise(function (r) { setTimeout(r, 30); }).then(function () {
+        py.globals.set("_codigo", ta.value);
+        py.globals.set("_tests", ej.tests || "");
+        return JSON.parse(py.runPython("_correr(_codigo, _tests)"));
+      });
+    }).then(function (r) {
+      pintarResultado(r);
+    }).catch(function (e) {
+      salida.innerHTML = "";
+      salida.appendChild(el("div", { "class": "caja mal" }, "<h3>No se pudo ejecutar</h3><div class=\"salida\">" + esc(String(e && e.message || e)) +
+        "</div><p>Comprueba tu conexión (Pyodide se descarga de jsDelivr) y vuelve a intentarlo.</p>"));
+    }).then(function () { bRun.disabled = false; });
+  }
+  function pintarResultado(r) {
+    salida.innerHTML = "";
+    if (r.stdout) {
+      var s = el("div", { "class": "caja" });
+      s.innerHTML = "<h3>Salida de tu código</h3>";
+      s.appendChild(el("pre", null, "")); s.lastChild.textContent = r.stdout;
+      salida.appendChild(s);
+    }
+    var c;
+    if (r.ok) {
+      c = el("div", { "class": "caja ok" }, "<h3>✅ todos los tests pasan</h3>");
+      marcarResuelto(id);
+      pintarExtra();
+    } else if (r.tipo === "AssertionError") {
+      c = el("div", { "class": "caja mal" });
+      c.innerHTML = "<h3>❌ Falló un test</h3>" + (r.msg ? "<div>Mensaje: <code>" + esc(r.msg) + "</code></div>" : "") +
+        (r.linea ? "<div>Línea del assert: <code>" + esc(r.linea) + "</code></div>" : "");
+      if (r.detalle) { c.appendChild(el("pre", null, "")); c.lastChild.textContent = r.detalle; }
+    } else {
+      c = el("div", { "class": "caja mal" });
+      c.innerHTML = "<h3>❌ Error al ejecutar</h3>";
+      c.appendChild(el("pre", null, "")); c.lastChild.textContent = r.detalle || (r.tipo + ": " + r.msg);
+    }
+    salida.appendChild(c);
+  }
+  pintarPistas(); pintarSol(); pintarExtra();
+}
+
+/* ---------- Pyodide ---------- */
+var pyPromise = null, pyListo = false;
+var RUNNER = [
+  "import sys, io, json, traceback",
+  "def _correr(codigo, tests):",
+  "    buf = io.StringIO()",
+  "    old = (sys.stdout, sys.stderr)",
+  "    sys.stdout = sys.stderr = buf",
+  "    res = {'ok': False, 'tipo': '', 'msg': '', 'linea': '', 'detalle': ''}",
+  "    fuente = codigo + '\\n' + tests",
+  "    n_cod = codigo.count('\\n') + 1",
+  "    lineas = fuente.split('\\n')",
+  "    ns = {'__name__': '__practica__'}",
+  "    try:",
+  "        exec(compile(fuente, '<ejercicio>', 'exec'), ns)",
+  "        res['ok'] = True",
+  "    except BaseException as e:",
+  "        res['tipo'] = type(e).__name__",
+  "        res['msg'] = str(e)",
+  "        n = None",
+  "        tb = e.__traceback__",
+  "        while tb is not None:",
+  "            if tb.tb_frame.f_code.co_filename == '<ejercicio>':",
+  "                n = tb.tb_lineno",
+  "            tb = tb.tb_next",
+  "        if isinstance(e, SyntaxError) and e.filename == '<ejercicio>':",
+  "            n = e.lineno",
+  "        if n is not None and 0 < n <= len(lineas):",
+  "            donde = 'test' if n > n_cod else 'tu codigo'",
+  "            res['linea'] = lineas[n - 1].strip() + '   (' + donde + ', linea ' + (str(n - n_cod) if n > n_cod else str(n)) + ')'",
+  "        if isinstance(e, AssertionError):",
+  "            res['detalle'] = ''",
+  "        else:",
+  "            tl = traceback.format_exception(type(e), e, e.__traceback__)",
+  "            tl = [t for t in tl if 'File \"<ejercicio>\"' in t or not t.startswith('  File')]",
+  "            res['detalle'] = ''.join(tl).replace('<ejercicio>', 'tu_codigo')",
+  "    finally:",
+  "        sys.stdout, sys.stderr = old",
+  "    res['stdout'] = buf.getvalue()",
+  "    return json.dumps(res)"
+].join("\n");
+
+function cargarPyodide() {
+  if (pyPromise) return pyPromise;
+  pyPromise = new Promise(function (resolve, reject) {
+    var s = document.createElement("script");
+    s.src = PYODIDE_URL;
+    s.crossOrigin = "anonymous";
+    s.onload = function () {
+      loadPyodide().then(function (py) {
+        py.runPython(RUNNER);
+        pyListo = true;
+        resolve(py);
+      }).catch(reject);
+    };
+    s.onerror = function () { reject(new Error("No se pudo descargar Pyodide desde jsDelivr.")); };
+    document.head.appendChild(s);
+  }).catch(function (e) { pyPromise = null; throw e; });
+  return pyPromise;
+}
+
+/* ---------- cronómetro ---------- */
+var cronoT = null, cronoRest = CRONO_SEG, cronoFin = 0;
+function cronoPintar() {
+  var m = Math.floor(cronoRest / 60), s = cronoRest % 60;
+  var t = $("tiempo");
+  t.textContent = (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+  t.classList.toggle("fin", cronoRest === 0);
+}
+function cronoReset() {
+  clearInterval(cronoT); cronoT = null; cronoRest = CRONO_SEG;
+  $("cronoIni").textContent = "Iniciar"; cronoPintar();
+}
+$("cronoIni").addEventListener("click", function () {
+  if (cronoT) { clearInterval(cronoT); cronoT = null; this.textContent = "Reanudar"; return; }
+  if (cronoRest === 0) cronoRest = CRONO_SEG;
+  cronoFin = Date.now() + cronoRest * 1000;
+  this.textContent = "Pausar";
+  cronoT = setInterval(function () {
+    cronoRest = Math.max(0, Math.round((cronoFin - Date.now()) / 1000));
+    cronoPintar();
+    if (cronoRest === 0) { clearInterval(cronoT); cronoT = null; $("cronoIni").textContent = "Iniciar"; }
+  }, 250);
+});
+$("cronoRes").addEventListener("click", cronoReset);
+
+/* ---------- reiniciar progreso ---------- */
+$("resetBtn").addEventListener("click", function () {
+  var av = $("avisos");
+  if ($("confirmReset")) return;
+  var c = el("div", { "class": "aviso", id: "confirmReset", role: "alertdialog", "aria-label": "Confirmar reinicio de progreso" });
+  c.innerHTML = "<strong>¿Borrar todo el progreso?</strong> Se perderán tu código, ejercicios resueltos y pistas vistas. ";
+  var si = el("button", { "class": "btn peligro chico" }, "Sí, borrar");
+  var no = el("button", { "class": "btn chico" }, "Cancelar");
+  c.appendChild(si); c.appendChild(document.createTextNode(" ")); c.appendChild(no);
+  si.addEventListener("click", function () {
+    prog = { codigo: {}, resueltos: {}, pistas: {}, vistaSol: {}, quiz: {} };
+    try { localStorage.removeItem(LS_KEY); } catch (e) { /* ignorar */ }
+    c.remove();
+    if (actualId) mostrar(actualId); else renderSidebar();
+  });
+  no.addEventListener("click", function () { c.remove(); });
+  av.appendChild(c); no.focus();
+});
+
+/* ---------- arranque ---------- */
+$("menuBtn").addEventListener("click", function () { cerrarMenu(!$("lateral").classList.contains("cerrada")); });
+$("buscar").addEventListener("input", renderSidebar);
+$("dificultad").addEventListener("change", renderSidebar);
+
+cargarProg();
+cronoPintar();
+$("vista").innerHTML = "<p class=\"cargando\"><span class=\"spin\"></span>Cargando ejercicios…</p>";
+cargarDatos().then(function () {
+  renderSidebar();
+  var id = location.hash.replace("#", "");
+  if (!porId[id]) id = orden.find(function (i) { return !prog.resueltos[i]; }) || orden[0];
+  if (id) { if (location.hash.replace("#", "") !== id) history.replaceState(null, "", "#" + id); mostrar(id); }
+  else $("vista").innerHTML = "<p>No hay ejercicios disponibles todavía.</p>";
+});
+</script>
+</body>
+</html>

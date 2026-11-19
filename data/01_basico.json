@@ -1,0 +1,469 @@
+{
+  "nivel": "Básico",
+  "descripcion": "Fundamentos de Python para entrevista junior: tipos, estructuras, funciones, excepciones, archivos y clases.",
+  "ejercicios": [
+    {
+      "id": "b01",
+      "tipo": "codigo",
+      "titulo": "FizzBuzz",
+      "dificultad": "facil",
+      "tema": "control de flujo",
+      "roadmap": "FizzBuzz sin googlear",
+      "enunciado": "Escribe `fizzbuzz(n)` que devuelva una lista de strings del 1 al `n` (inclusive):\n- múltiplos de 3 -> `\"Fizz\"`\n- múltiplos de 5 -> `\"Buzz\"`\n- múltiplos de 3 y de 5 -> `\"FizzBuzz\"`\n- el resto -> el número como string\n\nEjemplos:\n`fizzbuzz(5)` -> `['1', '2', 'Fizz', '4', 'Buzz']`\n`fizzbuzz(15)[-1]` -> `'FizzBuzz'`\n\nCasos borde: `n = 0` devuelve `[]`.",
+      "pistas": [
+        "Recorre `range(1, n + 1)`.",
+        "Comprueba primero el caso de 15 (o `i % 3 == 0 and i % 5 == 0`).",
+        "Alternativa: construye el texto con `texto = ''`, añade 'Fizz' si %3, 'Buzz' si %5, y si queda vacío usa `str(i)`."
+      ],
+      "plantilla": "def fizzbuzz(n):\n    # tu código aquí\n    pass\n",
+      "tests": "assert fizzbuzz(5) == ['1', '2', 'Fizz', '4', 'Buzz']\nassert fizzbuzz(0) == [], \"con n = 0\"\nassert fizzbuzz(1) == ['1'], \"un elemento\"\nr = fizzbuzz(15)\nassert len(r) == 15\nassert r[-1] == 'FizzBuzz' and r[2] == 'Fizz' and r[4] == 'Buzz' and r[9] == 'Buzz'\nassert r[14 - 3] == 'Fizz'\n",
+      "solucion": "def fizzbuzz(n):\n    resultado = []\n    for i in range(1, n + 1):\n        if i % 15 == 0:\n            resultado.append(\"FizzBuzz\")\n        elif i % 3 == 0:\n            resultado.append(\"Fizz\")\n        elif i % 5 == 0:\n            resultado.append(\"Buzz\")\n        else:\n            resultado.append(str(i))\n    return resultado\n",
+      "explicacion": "El orden de los if importa: el caso mas especifico (15) va primero, si no 15 caeria en 'Fizz'. Tiempo O(n), espacio O(n) por la lista. Alternativa sin 'if 15': concatenar 'Fizz' + 'Buzz' y usar `texto or str(i)`, que escala mejor si añaden mas reglas.",
+      "pregunta_entrevistador": "Si ahora piden tambien 7 -> 'Bazz', ¿como lo harias sin explotar en ifs? (Respuesta: lista de reglas (divisor, palabra) y concatenar.)"
+    },
+    {
+      "id": "b02",
+      "tipo": "codigo",
+      "titulo": "Frecuencia de palabras con Counter",
+      "dificultad": "facil",
+      "tema": "collections",
+      "roadmap": "Frecuencia de palabras con Counter",
+      "enunciado": "Escribe `top_palabras(texto, n)` que devuelva una lista de tuplas `(palabra, veces)` con las `n` palabras mas frecuentes de `texto`, de mayor a menor. Ignora mayusculas/minusculas y separa por espacios en blanco (`split()`). En empates, mantén el orden de primera aparicion (es lo que hace `most_common`).\n\nEjemplo:\n`top_palabras(\"el gato y el perro y el pez\", 2)` -> `[('el', 3), ('y', 2)]`\n\nCasos borde: texto vacio -> `[]`; `n` mayor que palabras distintas -> devuelve todas.",
+      "pistas": [
+        "`from collections import Counter`.",
+        "Normaliza con `.lower().split()` antes de contar.",
+        "`Counter(palabras).most_common(n)`."
+      ],
+      "plantilla": "from collections import Counter\n\n\ndef top_palabras(texto, n):\n    # tu código aquí\n    pass\n",
+      "tests": "assert top_palabras(\"el gato y el perro y el pez\", 2) == [('el', 3), ('y', 2)]\nassert top_palabras(\"\", 3) == [], \"texto vacio\"\nassert top_palabras(\"Hola hola HOLA\", 1) == [('hola', 3)], \"ignora mayusculas\"\nassert top_palabras(\"a b\", 10) == [('a', 1), ('b', 1)], \"n mayor que distintas\"\nassert top_palabras(\"  a   a  \", 1) == [('a', 2)], \"espacios extra\"\n",
+      "solucion": "from collections import Counter\n\n\ndef top_palabras(texto, n):\n    return Counter(texto.lower().split()).most_common(n)\n",
+      "explicacion": "Counter es un dict especializado para contar; construirlo es O(m) para m palabras y most_common(n) es O(k log n) con k distintas. Sin Counter: dict + `d[p] = d.get(p, 0) + 1` y luego `sorted(d.items(), key=lambda kv: -kv[1])` (sorted es estable, por eso mantiene el orden de aparicion en empates).",
+      "pregunta_entrevistador": "¿Y si el texto tiene signos de puntuacion ('hola,' vs 'hola')? ¿Como lo limpiarias? (re.findall(r'\\w+') o str.strip(puntuacion).)"
+    },
+    {
+      "id": "b03",
+      "tipo": "codigo",
+      "titulo": "Invertir un string de 3 formas",
+      "dificultad": "facil",
+      "tema": "strings",
+      "roadmap": "Invertir string de 3 formas",
+      "enunciado": "Implementa tres funciones que inviertan un string, cada una con una tecnica distinta:\n1. `invertir_slicing(s)` usando slicing.\n2. `invertir_loop(s)` usando un bucle `for` que va construyendo el resultado.\n3. `invertir_reversed(s)` usando `reversed()` y `''.join`.\n\nEjemplos: `'hola'` -> `'aloh'`, `'ab'` -> `'ba'`.\nCasos borde: string vacio -> `''`, un caracter -> el mismo.",
+      "pistas": [
+        "Slicing con paso negativo: `s[::-1]`.",
+        "En el bucle, ve prependiendo: `resultado = c + resultado`.",
+        "`reversed(s)` devuelve un iterador de caracteres; `''.join(...)` los une."
+      ],
+      "plantilla": "def invertir_slicing(s):\n    pass\n\n\ndef invertir_loop(s):\n    pass\n\n\ndef invertir_reversed(s):\n    pass\n",
+      "tests": "for f in (invertir_slicing, invertir_loop, invertir_reversed):\n    assert f('hola') == 'aloh', f.__name__\n    assert f('') == '', f.__name__ + \" vacio\"\n    assert f('a') == 'a', f.__name__ + \" un caracter\"\n    assert f('ab cd') == 'dc ba', f.__name__ + \" con espacio\"\n",
+      "solucion": "def invertir_slicing(s):\n    return s[::-1]\n\n\ndef invertir_loop(s):\n    resultado = \"\"\n    for c in s:\n        resultado = c + resultado\n    return resultado\n\n\ndef invertir_reversed(s):\n    return \"\".join(reversed(s))\n",
+      "explicacion": "Slicing: O(n), es lo mas pythonico. Loop con `c + resultado`: cada concatenacion copia el string (los str son inmutables) asi que es O(n^2) en teoria (CPython lo optimiza a veces); mejor acumular en lista y hacer join. reversed+join: O(n).",
+      "pregunta_entrevistador": "¿Por que el loop de concatenacion es O(n^2) y como lo arreglas? (Lista de caracteres + join, o recorrer de atras hacia adelante y append.)"
+    },
+    {
+      "id": "b04",
+      "tipo": "codigo",
+      "titulo": "Slicing de listas",
+      "dificultad": "facil",
+      "tema": "slicing",
+      "roadmap": "Slicing ([1:4], [::-1], [::2])",
+      "enunciado": "Escribe `rebanadas(lista)` que devuelva una tupla de 3 elementos:\n1. los elementos de las posiciones 1 a 3 (`[1:4]`),\n2. la lista invertida,\n3. los elementos de posicion par (0, 2, 4...).\n\nEjemplo: `rebanadas([10, 20, 30, 40, 50])` -> `([20, 30, 40], [50, 40, 30, 20, 10], [10, 30, 50])`\n\nNo debe modificar la lista original. Casos borde: lista vacia -> `([], [], [])`; con 2 elementos el primer trozo tiene solo el elemento 1 (el slicing no lanza IndexError).",
+      "pistas": [
+        "El slicing nunca lanza IndexError: se recorta al tamaño de la lista.",
+        "`lista[inicio:fin:paso]`; paso negativo recorre al reves.",
+        "`return (lista[1:4], lista[::-1], lista[::2])`"
+      ],
+      "plantilla": "def rebanadas(lista):\n    # tu código aquí\n    pass\n",
+      "tests": "assert rebanadas([10, 20, 30, 40, 50]) == ([20, 30, 40], [50, 40, 30, 20, 10], [10, 30, 50])\nassert rebanadas([]) == ([], [], []), \"vacia\"\nassert rebanadas([7]) == ([], [7], [7]), \"un elemento\"\nassert rebanadas([1, 2]) == ([2], [2, 1], [1]), \"dos elementos\"\norig = [1, 2, 3]\nrebanadas(orig)\nassert orig == [1, 2, 3], \"no debe mutar\"\n",
+      "solucion": "def rebanadas(lista):\n    return (lista[1:4], lista[::-1], lista[::2])\n",
+      "explicacion": "El slice crea una copia superficial, por eso no se muta el original. Cada slice es O(k) en tiempo y espacio. El fin es exclusivo: [1:4] da indices 1,2,3.",
+      "pregunta_entrevistador": "¿Que devuelve `lista[::-1]` vs `lista.reverse()` y `reversed(lista)`? (copia nueva / in-place devuelve None / iterador)."
+    },
+    {
+      "id": "b05",
+      "tipo": "codigo",
+      "titulo": "Metodos de string y f-strings",
+      "dificultad": "facil",
+      "tema": "strings",
+      "roadmap": "f-strings y métodos de string",
+      "enunciado": "Implementa tres funciones:\n\n1. `normalizar_nombre(s)`: quita espacios de los extremos, colapsa espacios internos repetidos a uno solo y pone cada palabra con la primera letra en mayuscula.\n   `'  ana   maria LOPEZ '` -> `'Ana Maria Lopez'`\n2. `es_https(url)`: `True` si la URL (ignorando mayusculas y espacios extremos) empieza por `https://`.\n3. `etiqueta_precio(producto, precio)`: usa un f-string: `etiqueta_precio('cafe', 3.5)` -> `'CAFE: $3.50'` (nombre en mayusculas, precio con 2 decimales).\n\nCasos borde: string vacio o solo espacios en la 1 -> `''`.",
+      "pistas": [
+        "`s.split()` sin argumentos ya colapsa espacios y quita los de los extremos.",
+        "`' '.join(p.capitalize() for p in palabras)`. Para 3: `f'{x:.2f}'`.",
+        "`url.strip().lower().startswith('https://')`"
+      ],
+      "plantilla": "def normalizar_nombre(s):\n    pass\n\n\ndef es_https(url):\n    pass\n\n\ndef etiqueta_precio(producto, precio):\n    pass\n",
+      "tests": "assert normalizar_nombre('  ana   maria LOPEZ ') == 'Ana Maria Lopez'\nassert normalizar_nombre('') == '', \"vacio\"\nassert normalizar_nombre('   ') == '', \"solo espacios\"\nassert normalizar_nombre('pepe') == 'Pepe', \"una palabra\"\nassert es_https('https://x.com') is True\nassert es_https('  HTTPS://x.com ') is True, \"mayusculas y espacios\"\nassert es_https('http://x.com') is False\nassert es_https('') is False\nassert etiqueta_precio('cafe', 3.5) == 'CAFE: $3.50'\nassert etiqueta_precio('te', 2) == 'TE: $2.00'\n",
+      "solucion": "def normalizar_nombre(s):\n    return \" \".join(p.capitalize() for p in s.split())\n\n\ndef es_https(url):\n    return url.strip().lower().startswith(\"https://\")\n\n\ndef etiqueta_precio(producto, precio):\n    return f\"{producto.upper()}: ${precio:.2f}\"\n",
+      "explicacion": "split() sin argumentos divide por cualquier bloque de espacios y descarta vacios; join es el inverso. Los strings son inmutables, cada metodo devuelve uno nuevo. Todo O(n).",
+      "pregunta_entrevistador": "¿Diferencia entre `.capitalize()`, `.title()` y `.upper()`? (title pone mayuscula tras cualquier no-letra: \"o'neil\" -> \"O'Neil\".)"
+    },
+    {
+      "id": "b06",
+      "tipo": "codigo",
+      "titulo": "append vs extend, insert, pop y remove",
+      "dificultad": "facil",
+      "tema": "listas",
+      "roadmap": "append vs extend, insert, pop, remove",
+      "enunciado": "Implementa estas funciones que MODIFICAN la lista recibida (in-place) y no devuelven nada:\n\n1. `agregar_uno(lista, elem)`: añade `elem` como UN solo elemento al final (aunque sea una lista).\n2. `agregar_varios(lista, otros)`: añade cada elemento de `otros` al final.\n3. `rotar_izquierda(lista)`: saca el primer elemento y lo pone al final. Con lista vacia no hace nada.\n4. `quitar_primero(lista, x)`: quita la primera aparicion de `x`; si no esta, no hace nada (sin lanzar error).\n\nEjemplos:\n`l=[1]; agregar_uno(l, [2, 3])` -> `l == [1, [2, 3]]`\n`l=[1]; agregar_varios(l, [2, 3])` -> `l == [1, 2, 3]`\n`l=[1, 2, 3]; rotar_izquierda(l)` -> `l == [2, 3, 1]`",
+      "pistas": [
+        "append añade un objeto; extend itera y añade cada elemento.",
+        "`pop(0)` quita y devuelve el primero. Ojo con lista vacia (`if lista:`).",
+        "`remove` lanza ValueError si no existe: compruebalo antes con `in` o usa try/except."
+      ],
+      "plantilla": "def agregar_uno(lista, elem):\n    pass\n\n\ndef agregar_varios(lista, otros):\n    pass\n\n\ndef rotar_izquierda(lista):\n    pass\n\n\ndef quitar_primero(lista, x):\n    pass\n",
+      "tests": "l = [1]\nagregar_uno(l, [2, 3])\nassert l == [1, [2, 3]], \"append añade un solo objeto\"\nl = [1]\nagregar_varios(l, [2, 3])\nassert l == [1, 2, 3], \"extend añade cada elemento\"\nl = [1]\nagregar_varios(l, [])\nassert l == [1], \"extend con vacio\"\nl = [1, 2, 3]\nrotar_izquierda(l)\nassert l == [2, 3, 1]\nl = []\nrotar_izquierda(l)\nassert l == [], \"rotar vacia\"\nl = [5]\nrotar_izquierda(l)\nassert l == [5], \"rotar un elemento\"\nl = [1, 2, 1]\nquitar_primero(l, 1)\nassert l == [2, 1], \"solo la primera aparicion\"\nquitar_primero(l, 99)\nassert l == [2, 1], \"no existe: sin error\"\n",
+      "solucion": "def agregar_uno(lista, elem):\n    lista.append(elem)\n\n\ndef agregar_varios(lista, otros):\n    lista.extend(otros)\n\n\ndef rotar_izquierda(lista):\n    if lista:\n        lista.append(lista.pop(0))\n\n\ndef quitar_primero(lista, x):\n    if x in lista:\n        lista.remove(x)\n",
+      "explicacion": "append y extend mutan la lista y devuelven None. append es O(1) amortizado, extend O(k). pop(0) es O(n) porque desplaza todo; para colas usa collections.deque (popleft O(1)). remove es O(n).",
+      "pregunta_entrevistador": "¿Por que `pop(0)` es lento y que usarias para una cola? (deque.popleft O(1).)"
+    },
+    {
+      "id": "b07",
+      "tipo": "codigo",
+      "titulo": "sort vs sorted",
+      "dificultad": "facil",
+      "tema": "listas",
+      "roadmap": "sort vs sorted",
+      "enunciado": "Implementa:\n\n1. `ordenada_desc(lista)`: devuelve una lista NUEVA ordenada de mayor a menor SIN modificar la original (usa `sorted`).\n2. `ordenar_en_sitio(lista)`: ordena `lista` de menor a mayor modificandola (usa `.sort()`); devuelve `None`.\n3. `por_longitud(palabras)`: devuelve una lista nueva de palabras ordenada por longitud y, en empate, alfabeticamente. Usa `key=` (con lambda o tupla).\n\nEjemplos:\n`ordenada_desc([3, 1, 2])` -> `[3, 2, 1]` (la original queda `[3, 1, 2]`)\n`por_longitud(['pez', 'a', 'gato', 'ave'])` -> `['a', 'ave', 'pez', 'gato']`",
+      "pistas": [
+        "`sorted(x, reverse=True)` no toca x. `x.sort()` si, y devuelve None.",
+        "Error clasico: `return lista.sort()` devuelve None.",
+        "`key=lambda p: (len(p), p)`"
+      ],
+      "plantilla": "def ordenada_desc(lista):\n    pass\n\n\ndef ordenar_en_sitio(lista):\n    pass\n\n\ndef por_longitud(palabras):\n    pass\n",
+      "tests": "orig = [3, 1, 2]\nassert ordenada_desc(orig) == [3, 2, 1]\nassert orig == [3, 1, 2], \"sorted no muta la original\"\nassert ordenada_desc([]) == [], \"vacia\"\nassert ordenada_desc([5]) == [5]\nl = [3, 1, 2]\nassert ordenar_en_sitio(l) is None, \".sort() devuelve None\"\nassert l == [1, 2, 3]\nl = []\nordenar_en_sitio(l)\nassert l == []\nassert por_longitud(['pez', 'a', 'gato', 'ave']) == ['a', 'ave', 'pez', 'gato']\nassert por_longitud([]) == []\n",
+      "solucion": "def ordenada_desc(lista):\n    return sorted(lista, reverse=True)\n\n\ndef ordenar_en_sitio(lista):\n    lista.sort()\n\n\ndef por_longitud(palabras):\n    return sorted(palabras, key=lambda p: (len(p), p))\n",
+      "explicacion": "sorted acepta cualquier iterable y devuelve lista nueva (O(n) espacio); sort es in-place, solo listas. Ambos usan Timsort: O(n log n) y estables. key recibe una funcion que extrae la clave de comparacion; una tupla ordena por multiples criterios.",
+      "pregunta_entrevistador": "¿Que significa que el sort sea estable y por que importa? (Elementos con la misma clave conservan su orden relativo; permite ordenar por varias claves en pasadas.)"
+    },
+    {
+      "id": "b08",
+      "tipo": "codigo",
+      "titulo": "dict.get y recorrer diccionarios",
+      "dificultad": "facil",
+      "tema": "diccionarios",
+      "roadmap": "dict.get(k, default), keys/values/items",
+      "enunciado": "Implementa:\n\n1. `contar_caracteres(s)`: devuelve un dict `{caracter: veces}` SIN usar Counter (usa `dict.get(k, 0)`).\n   `contar_caracteres('hola')` -> `{'h': 1, 'o': 1, 'l': 1, 'a': 1}`\n2. `clave_mayor(d)`: devuelve la clave con el valor mas grande; si `d` esta vacio devuelve `None`.\n   `clave_mayor({'a': 1, 'b': 5, 'c': 3})` -> `'b'`\n3. `valor_o_defecto(d, k)`: devuelve `d[k]` o la cadena `'N/A'` si no existe, sin lanzar KeyError.",
+      "pistas": [
+        "`d[c] = d.get(c, 0) + 1`.",
+        "Recorre con `for k, v in d.items():` y guarda el maximo.",
+        "`max(d, key=d.get)` funciona pero falla con dict vacio (ValueError): maneja ese caso antes."
+      ],
+      "plantilla": "def contar_caracteres(s):\n    pass\n\n\ndef clave_mayor(d):\n    pass\n\n\ndef valor_o_defecto(d, k):\n    pass\n",
+      "tests": "assert contar_caracteres('hola') == {'h': 1, 'o': 1, 'l': 1, 'a': 1}\nassert contar_caracteres('aab') == {'a': 2, 'b': 1}\nassert contar_caracteres('') == {}, \"vacio\"\nassert clave_mayor({'a': 1, 'b': 5, 'c': 3}) == 'b'\nassert clave_mayor({'x': 0}) == 'x', \"un elemento\"\nassert clave_mayor({}) is None, \"dict vacio\"\nassert valor_o_defecto({'a': 1}, 'a') == 1\nassert valor_o_defecto({'a': 1}, 'z') == 'N/A'\nassert valor_o_defecto({'a': None}, 'a') is None, \"valor None existente no es 'N/A'\"\n",
+      "solucion": "def contar_caracteres(s):\n    conteo = {}\n    for c in s:\n        conteo[c] = conteo.get(c, 0) + 1\n    return conteo\n\n\ndef clave_mayor(d):\n    if not d:\n        return None\n    return max(d, key=d.get)\n\n\ndef valor_o_defecto(d, k):\n    return d.get(k, \"N/A\")\n",
+      "explicacion": "get(k, default) evita KeyError y no inserta la clave. Acceso a dict es O(1) promedio, asi que contar es O(n). max(d, key=d.get) itera las claves y compara por valor: O(n).",
+      "pregunta_entrevistador": "¿Diferencia entre `d.get(k, [])` y `d.setdefault(k, [])`? ¿Y con defaultdict? (setdefault inserta la clave; defaultdict la crea al acceder.)"
+    },
+    {
+      "id": "b09",
+      "tipo": "codigo",
+      "titulo": "Misma funcion con loop y con comprension",
+      "dificultad": "facil",
+      "tema": "comprensiones",
+      "roadmap": "Misma función con loop y con comprensión",
+      "enunciado": "Implementa DOS versiones de la misma funcion:\n- `cuadrados_pares_loop(nums)`: con un bucle `for` y `append`.\n- `cuadrados_pares_comp(nums)`: con una list comprehension.\n\nAmbas devuelven una lista con el cuadrado de cada numero PAR de `nums`, en el mismo orden.\n\nEjemplo: `[1, 2, 3, 4]` -> `[4, 16]`\nCasos borde: lista vacia -> `[]`; sin pares -> `[]`; negativos: `-2` es par y su cuadrado es `4`.",
+      "pistas": [
+        "Un numero es par si `n % 2 == 0` (tambien funciona con negativos en Python).",
+        "Forma de la comprension: `[expresion for x in iterable if condicion]`.",
+        "`[n * n for n in nums if n % 2 == 0]`"
+      ],
+      "plantilla": "def cuadrados_pares_loop(nums):\n    pass\n\n\ndef cuadrados_pares_comp(nums):\n    pass\n",
+      "tests": "for f in (cuadrados_pares_loop, cuadrados_pares_comp):\n    assert f([1, 2, 3, 4]) == [4, 16], f.__name__\n    assert f([]) == [], f.__name__ + \" vacia\"\n    assert f([1, 3]) == [], f.__name__ + \" sin pares\"\n    assert f([-2, 0]) == [4, 0], f.__name__ + \" negativos y cero\"\n    assert f([6]) == [36], f.__name__ + \" un elemento\"\n",
+      "solucion": "def cuadrados_pares_loop(nums):\n    resultado = []\n    for n in nums:\n        if n % 2 == 0:\n            resultado.append(n * n)\n    return resultado\n\n\ndef cuadrados_pares_comp(nums):\n    return [n * n for n in nums if n % 2 == 0]\n",
+      "explicacion": "Ambas O(n) tiempo y O(k) espacio para k pares. La comprension es mas corta y algo mas rapida (menos overhead de llamar a append). Evita comprensiones anidadas ilegibles: si necesitas mas de un if/for, usa el loop.",
+      "pregunta_entrevistador": "Si la lista tiene 10 millones de elementos y solo vas a iterar el resultado una vez, ¿que usarias en lugar de la lista? (Una expresion generadora con parentesis.)"
+    },
+    {
+      "id": "b10",
+      "tipo": "codigo",
+      "titulo": "Comprensiones de dict y set",
+      "dificultad": "facil",
+      "tema": "comprensiones",
+      "roadmap": "comprensiones (list/dict/set)",
+      "enunciado": "Implementa:\n\n1. `longitudes(palabras)`: dict `{palabra: len(palabra)}` con una dict comprehension.\n   `longitudes(['hola', 'a'])` -> `{'hola': 4, 'a': 1}`\n2. `iniciales_unicas(palabras)`: set con las primeras letras en MINUSCULA de las palabras (ignora palabras vacias).\n   `iniciales_unicas(['Ana', 'abel', 'Bea', ''])` -> `{'a', 'b'}`\n3. `invertir_dict(d)`: dict con claves y valores intercambiados (asume que los valores son unicos).\n   `invertir_dict({'a': 1, 'b': 2})` -> `{1: 'a', 2: 'b'}`",
+      "pistas": [
+        "dict comprehension: `{k: v for ... }`; set comprehension: `{x for ...}` (ojo: `{}` vacio es un dict).",
+        "Para ignorar vacias, añade `if p`.",
+        "`{v: k for k, v in d.items()}`"
+      ],
+      "plantilla": "def longitudes(palabras):\n    pass\n\n\ndef iniciales_unicas(palabras):\n    pass\n\n\ndef invertir_dict(d):\n    pass\n",
+      "tests": "assert longitudes(['hola', 'a']) == {'hola': 4, 'a': 1}\nassert longitudes([]) == {}\nassert iniciales_unicas(['Ana', 'abel', 'Bea', '']) == {'a', 'b'}\nassert iniciales_unicas([]) == set(), \"set vacio, no dict\"\nassert type(iniciales_unicas([])) is set\nassert iniciales_unicas(['x']) == {'x'}\nassert invertir_dict({'a': 1, 'b': 2}) == {1: 'a', 2: 'b'}\nassert invertir_dict({}) == {}\n",
+      "solucion": "def longitudes(palabras):\n    return {p: len(p) for p in palabras}\n\n\ndef iniciales_unicas(palabras):\n    return {p[0].lower() for p in palabras if p}\n\n\ndef invertir_dict(d):\n    return {v: k for k, v in d.items()}\n",
+      "explicacion": "Las tres son O(n). El set elimina duplicados automaticamente. Si los valores de invertir_dict se repiten, la ultima clave gana (se pierden datos).",
+      "pregunta_entrevistador": "En invertir_dict, ¿que pasa si hay valores repetidos o no hashables? (Se pisan las claves; una lista como valor da TypeError al usarse de clave.)"
+    },
+    {
+      "id": "b11",
+      "tipo": "codigo",
+      "titulo": "enumerate, zip, any y all",
+      "dificultad": "facil",
+      "tema": "iteracion",
+      "roadmap": "enumerate, zip, range, min/max/sum/len, any/all",
+      "enunciado": "Implementa:\n\n1. `posiciones(lista, x)`: lista de indices donde aparece `x` (usa `enumerate`).\n   `posiciones([1, 2, 1], 1)` -> `[0, 2]`\n2. `emparejar(claves, valores)`: dict que une ambas listas con `zip`; si tienen distinto largo, se corta a la mas corta.\n   `emparejar(['a', 'b'], [1, 2, 3])` -> `{'a': 1, 'b': 2}`\n3. `todos_aprobados(notas, minimo=60)`: `True` si TODAS las notas son >= minimo (usa `all`). Lista vacia -> `True`.\n4. `hay_negativos(nums)`: `True` si ALGUN numero es negativo (usa `any`). Lista vacia -> `False`.\n5. `resumen(nums)`: tupla `(minimo, maximo, suma, cantidad)`; para lista vacia devuelve `(None, None, 0, 0)`.",
+      "pistas": [
+        "`for i, v in enumerate(lista)`.",
+        "`dict(zip(claves, valores))`.",
+        "`all([])` es True y `any([])` es False. Para resumen, comprueba la lista vacia antes de `min`/`max` (lanzan ValueError)."
+      ],
+      "plantilla": "def posiciones(lista, x):\n    pass\n\n\ndef emparejar(claves, valores):\n    pass\n\n\ndef todos_aprobados(notas, minimo=60):\n    pass\n\n\ndef hay_negativos(nums):\n    pass\n\n\ndef resumen(nums):\n    pass\n",
+      "tests": "assert posiciones([1, 2, 1], 1) == [0, 2]\nassert posiciones([], 1) == [], \"vacia\"\nassert posiciones([5], 9) == [], \"no esta\"\nassert emparejar(['a', 'b'], [1, 2, 3]) == {'a': 1, 'b': 2}\nassert emparejar([], [1]) == {}\nassert todos_aprobados([70, 60, 90]) is True\nassert todos_aprobados([70, 59]) is False\nassert todos_aprobados([]) is True, \"all de vacio es True\"\nassert todos_aprobados([5, 6], minimo=5) is True, \"keyword\"\nassert hay_negativos([1, -1]) is True\nassert hay_negativos([0, 1]) is False\nassert hay_negativos([]) is False, \"any de vacio es False\"\nassert resumen([3, 1, 2]) == (1, 3, 6, 3)\nassert resumen([]) == (None, None, 0, 0)\nassert resumen([4]) == (4, 4, 4, 1)\n",
+      "solucion": "def posiciones(lista, x):\n    return [i for i, v in enumerate(lista) if v == x]\n\n\ndef emparejar(claves, valores):\n    return dict(zip(claves, valores))\n\n\ndef todos_aprobados(notas, minimo=60):\n    return all(n >= minimo for n in notas)\n\n\ndef hay_negativos(nums):\n    return any(n < 0 for n in nums)\n\n\ndef resumen(nums):\n    if not nums:\n        return (None, None, 0, 0)\n    return (min(nums), max(nums), sum(nums), len(nums))\n",
+      "explicacion": "enumerate evita `range(len(lista))`. zip se detiene en el iterable mas corto (zip_longest si no quieres eso). any/all hacen cortocircuito: paran en cuanto saben la respuesta. Todo O(n).",
+      "pregunta_entrevistador": "¿Por que `all([])` es True? (Verdad vacua: no existe ningun elemento que incumpla la condicion.)"
+    },
+    {
+      "id": "b12",
+      "tipo": "codigo",
+      "titulo": "Argumentos: defaults, *args, **kwargs, lambda",
+      "dificultad": "facil",
+      "tema": "funciones",
+      "roadmap": "posicionales vs keyword, defaults, *args, **kwargs, lambda",
+      "enunciado": "Implementa:\n\n1. `sumar_todo(*numeros)`: suma cualquier cantidad de argumentos posicionales (sin argumentos -> 0).\n2. `formatear_kwargs(**kwargs)`: devuelve un string `'a=1, b=2'` con los argumentos con nombre ordenados alfabeticamente por clave. Sin argumentos -> `''`.\n3. `potencia(base, exp=2)`: base elevada a `exp`; por defecto al cuadrado.\n4. `ordenar_por_precio(productos)`: recibe una lista de dicts `{'nombre':..., 'precio':...}` y devuelve una lista nueva ordenada por precio ascendente usando `lambda`.\n\nEjemplos: `sumar_todo(1, 2, 3)` -> `6`; `formatear_kwargs(b=2, a=1)` -> `'a=1, b=2'`; `potencia(3)` -> `9`; `potencia(2, exp=3)` -> `8`.",
+      "pistas": [
+        "`*numeros` llega como tupla; `**kwargs` llega como dict.",
+        "`', '.join(f'{k}={v}' for k, v in sorted(kwargs.items()))`",
+        "`sorted(productos, key=lambda p: p['precio'])`"
+      ],
+      "plantilla": "def sumar_todo(*numeros):\n    pass\n\n\ndef formatear_kwargs(**kwargs):\n    pass\n\n\ndef potencia(base, exp=2):\n    pass\n\n\ndef ordenar_por_precio(productos):\n    pass\n",
+      "tests": "assert sumar_todo(1, 2, 3) == 6\nassert sumar_todo() == 0, \"sin argumentos\"\nassert sumar_todo(5) == 5\nassert formatear_kwargs(b=2, a=1) == 'a=1, b=2'\nassert formatear_kwargs() == '', \"sin kwargs\"\nassert potencia(3) == 9\nassert potencia(2, exp=3) == 8\nassert potencia(2, 3) == 8, \"posicional\"\nassert potencia(base=5, exp=0) == 1\nps = [{'nombre': 'b', 'precio': 5}, {'nombre': 'a', 'precio': 2}]\nassert [p['nombre'] for p in ordenar_por_precio(ps)] == ['a', 'b']\nassert ps[0]['nombre'] == 'b', \"no muta\"\nassert ordenar_por_precio([]) == []\n",
+      "solucion": "def sumar_todo(*numeros):\n    return sum(numeros)\n\n\ndef formatear_kwargs(**kwargs):\n    return \", \".join(f\"{k}={v}\" for k, v in sorted(kwargs.items()))\n\n\ndef potencia(base, exp=2):\n    return base ** exp\n\n\ndef ordenar_por_precio(productos):\n    return sorted(productos, key=lambda p: p[\"precio\"])\n",
+      "explicacion": "*args empaqueta posicionales sobrantes en una tupla, **kwargs los nombrados en un dict. Los parametros con default van despues de los obligatorios. lambda es una funcion anonima de una sola expresion, ideal para key=.",
+      "pregunta_entrevistador": "¿Que hace `f(*lista, **dic)` en la LLAMADA? (Desempaqueta; es la operacion inversa.)"
+    },
+    {
+      "id": "b13",
+      "tipo": "codigo",
+      "titulo": "La trampa del default mutable",
+      "dificultad": "media",
+      "tema": "funciones",
+      "roadmap": "trampa del default mutable",
+      "enunciado": "Esta funcion tiene el bug clasico: la lista por defecto se comparte entre llamadas.\n\n```\ndef agregar_tarea(tarea, lista=[]):\n    lista.append(tarea)\n    return lista\n```\n\nArreglala para que:\n- `agregar_tarea('a')` -> `['a']` y despues `agregar_tarea('b')` -> `['b']` (cada llamada sin lista crea una nueva).\n- Si se pasa una lista, se añade a esa lista y se devuelve esa misma lista (mismo objeto).\n\nPista de entrevista: usa `None` como default.",
+      "pistas": [
+        "Los valores por defecto se evaluan UNA sola vez, al definir la funcion.",
+        "Cambia el default a `None` y crea la lista dentro de la funcion.",
+        "`if lista is None: lista = []`"
+      ],
+      "plantilla": "def agregar_tarea(tarea, lista=[]):\n    lista.append(tarea)\n    return lista\n",
+      "tests": "assert agregar_tarea('a') == ['a']\nassert agregar_tarea('b') == ['b'], \"no debe acumular entre llamadas\"\nmia = ['x']\nr = agregar_tarea('y', mia)\nassert r == ['x', 'y']\nassert r is mia, \"debe devolver la misma lista recibida\"\nassert agregar_tarea('c') == ['c'], \"sigue limpia tras usar una lista propia\"\nvacia = []\nagregar_tarea('z', vacia)\nassert vacia == ['z'], \"una lista vacia pasada tambien cuenta\"\n",
+      "solucion": "def agregar_tarea(tarea, lista=None):\n    if lista is None:\n        lista = []\n    lista.append(tarea)\n    return lista\n",
+      "explicacion": "El default se evalua al definir la funcion y el mismo objeto se reutiliza. Con None creamos una lista nueva en cada llamada. Ojo: usar `if not lista` seria un bug, porque una lista vacia pasada por el usuario seria reemplazada; hay que comparar con `is None`.",
+      "pregunta_entrevistador": "¿Por que `if not lista: lista = []` es un bug sutil? ¿Cuando el default mutable es util a proposito? (Cache/memoizacion rapida.)"
+    },
+    {
+      "id": "b14",
+      "tipo": "codigo",
+      "titulo": "Excepciones: raise y except especifico",
+      "dificultad": "facil",
+      "tema": "excepciones",
+      "roadmap": "try/except/else/finally, raise, excepciones específicas",
+      "enunciado": "Implementa:\n\n1. `dividir(a, b)`: devuelve `a / b`. Si `b == 0` debe lanzar `ValueError('no se puede dividir entre cero')` (captura `ZeroDivisionError` y relanza como `ValueError`).\n2. `a_entero(texto, defecto=None)`: convierte con `int()`; si el texto no es un entero valido devuelve `defecto`. Captura SOLO `ValueError`: si `texto` es `None`, el `TypeError` debe propagarse.\n3. `intentar(funcion)`: llama a `funcion()` y devuelve `('ok', resultado)` si no falla, o `('error', 'NombreDeLaExcepcion')` si falla (usa `try/except/else`, y `type(e).__name__`).\n\nEjemplos: `dividir(6, 3)` -> `2.0`; `a_entero('12')` -> `12`; `a_entero('x', 0)` -> `0`.",
+      "pistas": [
+        "`raise ValueError('mensaje')`. Captura con `except ZeroDivisionError:`.",
+        "Nunca uses `except:` desnudo ni `except Exception` para esto: oculta bugs.",
+        "En `intentar`: `try: r = funcion() / except Exception as e: return ('error', type(e).__name__) / else: return ('ok', r)`."
+      ],
+      "plantilla": "def dividir(a, b):\n    pass\n\n\ndef a_entero(texto, defecto=None):\n    pass\n\n\ndef intentar(funcion):\n    pass\n",
+      "tests": "assert dividir(6, 3) == 2.0\ntry:\n    dividir(1, 0)\nexcept ValueError as e:\n    assert 'cero' in str(e)\nelse:\n    assert False, \"dividir(1, 0) debia lanzar ValueError\"\nassert a_entero('12') == 12\nassert a_entero(' 7 ') == 7, \"int tolera espacios\"\nassert a_entero('x') is None\nassert a_entero('x', 0) == 0\nassert a_entero('') is None, \"vacio\"\ntry:\n    a_entero(None)\nexcept TypeError:\n    pass\nelse:\n    assert False, \"TypeError debia propagarse (solo se captura ValueError)\"\nassert intentar(lambda: 5) == ('ok', 5)\nassert intentar(lambda: 1 / 0) == ('error', 'ZeroDivisionError')\nassert intentar(lambda: int('x')) == ('error', 'ValueError')\nassert intentar(lambda: [][0]) == ('error', 'IndexError')\n",
+      "solucion": "def dividir(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        raise ValueError(\"no se puede dividir entre cero\")\n\n\ndef a_entero(texto, defecto=None):\n    try:\n        return int(texto)\n    except ValueError:\n        return defecto\n\n\ndef intentar(funcion):\n    try:\n        resultado = funcion()\n    except Exception as e:\n        return (\"error\", type(e).__name__)\n    else:\n        return (\"ok\", resultado)\n",
+      "explicacion": "Captura la excepcion mas especifica posible: un except demasiado ancho esconde bugs reales (como el TypeError de None). `else` se ejecuta solo si no hubo excepcion; `finally` siempre. En `dividir`, `raise ... from None` evitaria el encadenado en el traceback.",
+      "pregunta_entrevistador": "¿Cuando usarias `finally` y que pasa si hay un `return` dentro del try? (finally se ejecuta igual, antes de devolver; un return en finally pisa el del try.)"
+    },
+    {
+      "id": "b15",
+      "tipo": "codigo",
+      "titulo": "Leer CSV, agrupar y escribir JSON",
+      "dificultad": "media",
+      "tema": "archivos",
+      "roadmap": "leer CSV/JSON, agrupar con dict y escribir resultado",
+      "enunciado": "Implementa `totales_por_categoria(ruta_csv, ruta_salida)`:\n\n- Lee un CSV con cabecera `categoria,producto,monto` (usa `csv.DictReader` y `with open(..., newline='')`).\n- Agrupa con un dict y suma el `monto` (float) por categoria.\n- Escribe el resultado como JSON en `ruta_salida` (`json.dump`) y ademas lo devuelve.\n\nEjemplo, con filas `fruta,manzana,2.5`, `fruta,pera,1.5`, `lacteo,leche,3`:\n-> `{'fruta': 4.0, 'lacteo': 3.0}`\n\nCasos borde: CSV solo con cabecera -> `{}` (y se escribe `{}`).",
+      "pistas": [
+        "`with open(ruta, newline='', encoding='utf-8') as f: for fila in csv.DictReader(f): ...`",
+        "`totales[cat] = totales.get(cat, 0) + float(fila['monto'])`",
+        "`with open(ruta_salida, 'w', encoding='utf-8') as f: json.dump(totales, f)`"
+      ],
+      "plantilla": "import csv\nimport json\n\n\ndef totales_por_categoria(ruta_csv, ruta_salida):\n    # tu código aquí\n    pass\n",
+      "tests": "import csv\nimport json\nimport os\nimport tempfile\n\nwith tempfile.TemporaryDirectory() as d:\n    entrada = os.path.join(d, \"ventas.csv\")\n    salida = os.path.join(d, \"totales.json\")\n    with open(entrada, \"w\", newline=\"\", encoding=\"utf-8\") as f:\n        w = csv.writer(f)\n        w.writerow([\"categoria\", \"producto\", \"monto\"])\n        w.writerow([\"fruta\", \"manzana\", \"2.5\"])\n        w.writerow([\"fruta\", \"pera\", \"1.5\"])\n        w.writerow([\"lacteo\", \"leche\", \"3\"])\n    res = totales_por_categoria(entrada, salida)\n    assert res == {\"fruta\": 4.0, \"lacteo\": 3.0}, \"resultado devuelto\"\n    with open(salida, encoding=\"utf-8\") as f:\n        assert json.load(f) == {\"fruta\": 4.0, \"lacteo\": 3.0}, \"archivo escrito\"\n\n    vacio = os.path.join(d, \"vacio.csv\")\n    with open(vacio, \"w\", newline=\"\", encoding=\"utf-8\") as f:\n        csv.writer(f).writerow([\"categoria\", \"producto\", \"monto\"])\n    salida2 = os.path.join(d, \"vacio.json\")\n    assert totales_por_categoria(vacio, salida2) == {}, \"solo cabecera\"\n    with open(salida2, encoding=\"utf-8\") as f:\n        assert json.load(f) == {}\n",
+      "solucion": "import csv\nimport json\n\n\ndef totales_por_categoria(ruta_csv, ruta_salida):\n    totales = {}\n    with open(ruta_csv, newline=\"\", encoding=\"utf-8\") as f:\n        for fila in csv.DictReader(f):\n            cat = fila[\"categoria\"]\n            totales[cat] = totales.get(cat, 0) + float(fila[\"monto\"])\n    with open(ruta_salida, \"w\", encoding=\"utf-8\") as f:\n        json.dump(totales, f)\n    return totales\n",
+      "explicacion": "`with` garantiza que el archivo se cierra aunque haya excepcion. DictReader da cada fila como dict, evitando indices magicos. Todo es O(n) en filas, memoria O(categorias) porque leemos en streaming. CSV entrega strings: hay que convertir a float.",
+      "pregunta_entrevistador": "¿Que pasa con un archivo de 10 GB? (Funciona: DictReader es un iterador, no carga todo en memoria.) ¿Y si falta una columna? (KeyError: decidir si validar o fallar.)"
+    },
+    {
+      "id": "b16",
+      "tipo": "codigo",
+      "titulo": "Leer JSON y agrupar",
+      "dificultad": "media",
+      "tema": "archivos",
+      "roadmap": "json.load/dump/loads/dumps",
+      "enunciado": "Implementa:\n\n1. `agrupar_por(ruta_json, clave)`: lee un archivo JSON con una lista de dicts y devuelve un dict `{valor_de_clave: [nombres...]}` agrupando el campo `'nombre'` de cada elemento segun `clave`. Mantiene el orden de aparicion.\n   Para `[{'nombre': 'Ana', 'ciudad': 'Lima'}, {'nombre': 'Luis', 'ciudad': 'Lima'}, {'nombre': 'Eva', 'ciudad': 'Cusco'}]` y `clave='ciudad'` -> `{'Lima': ['Ana', 'Luis'], 'Cusco': ['Eva']}`\n2. `a_json(d)`: devuelve el dict como string JSON con claves ordenadas y sin escapar acentos (`json.dumps`, `sort_keys=True`, `ensure_ascii=False`).\n3. `de_json(texto)`: convierte el string JSON de vuelta a objeto Python (`json.loads`).\n\nCasos borde: lista vacia -> `{}`.",
+      "pistas": [
+        "`with open(ruta, encoding='utf-8') as f: datos = json.load(f)`.",
+        "`grupos.setdefault(valor, []).append(nombre)` evita el if.",
+        "`json.dumps(d, sort_keys=True, ensure_ascii=False)`."
+      ],
+      "plantilla": "import json\n\n\ndef agrupar_por(ruta_json, clave):\n    pass\n\n\ndef a_json(d):\n    pass\n\n\ndef de_json(texto):\n    pass\n",
+      "tests": "import json\nimport os\nimport tempfile\n\nwith tempfile.TemporaryDirectory() as d:\n    ruta = os.path.join(d, \"gente.json\")\n    datos = [\n        {\"nombre\": \"Ana\", \"ciudad\": \"Lima\"},\n        {\"nombre\": \"Luis\", \"ciudad\": \"Lima\"},\n        {\"nombre\": \"Eva\", \"ciudad\": \"Cusco\"},\n    ]\n    with open(ruta, \"w\", encoding=\"utf-8\") as f:\n        json.dump(datos, f)\n    assert agrupar_por(ruta, \"ciudad\") == {\"Lima\": [\"Ana\", \"Luis\"], \"Cusco\": [\"Eva\"]}\n    assert list(agrupar_por(ruta, \"ciudad\")) == [\"Lima\", \"Cusco\"], \"orden de aparicion\"\n    vacio = os.path.join(d, \"vacio.json\")\n    with open(vacio, \"w\", encoding=\"utf-8\") as f:\n        json.dump([], f)\n    assert agrupar_por(vacio, \"ciudad\") == {}, \"lista vacia\"\n\nassert a_json({\"b\": 1, \"a\": \"ñ\"}) == '{\"a\": \"ñ\", \"b\": 1}'\nassert a_json({}) == '{}'\nassert de_json('{\"a\": [1, 2, null, true]}') == {\"a\": [1, 2, None, True]}\nassert de_json('[]') == []\n",
+      "solucion": "import json\n\n\ndef agrupar_por(ruta_json, clave):\n    with open(ruta_json, encoding=\"utf-8\") as f:\n        datos = json.load(f)\n    grupos = {}\n    for item in datos:\n        grupos.setdefault(item[clave], []).append(item[\"nombre\"])\n    return grupos\n\n\ndef a_json(d):\n    return json.dumps(d, sort_keys=True, ensure_ascii=False)\n\n\ndef de_json(texto):\n    return json.loads(texto)\n",
+      "explicacion": "load/dump trabajan con archivos; loads/dumps con strings (la 's' es 'string'). JSON null/true/false se mapean a None/True/False. Agrupar es O(n). setdefault devuelve la lista existente o crea una vacia.",
+      "pregunta_entrevistador": "¿Que tipos de Python NO son serializables a JSON? (set, tuple se vuelve lista, datetime, objetos propios: hay que usar default= o convertirlos.)"
+    },
+    {
+      "id": "b17",
+      "tipo": "codigo",
+      "titulo": "Clase CuentaBancaria",
+      "dificultad": "media",
+      "tema": "clases",
+      "roadmap": "clase CuentaBancaria + __str__ vs __repr__ + excepción propia",
+      "enunciado": "Crea:\n\n1. La excepcion `SaldoInsuficienteError` (hereda de `Exception`).\n2. La clase `CuentaBancaria` con:\n   - `__init__(self, titular, saldo=0)`\n   - `depositar(monto)`: suma al saldo. Si `monto <= 0` lanza `ValueError`.\n   - `retirar(monto)`: resta del saldo. Si `monto <= 0` lanza `ValueError`; si `monto > saldo` lanza `SaldoInsuficienteError` y el saldo NO cambia.\n   - `saldo` accesible como atributo.\n   - `__str__` legible: `'Cuenta de Ana: $100.00'`\n   - `__repr__` para depurar: `\"CuentaBancaria('Ana', 100)\"`\n\nRetirar exactamente todo el saldo es valido.",
+      "pistas": [
+        "Define primero la excepcion: `class SaldoInsuficienteError(Exception): pass`.",
+        "Valida ANTES de modificar el saldo.",
+        "`__repr__` debe parecerse al codigo que recrea el objeto: `f'CuentaBancaria({self.titular!r}, {self.saldo!r})'`."
+      ],
+      "plantilla": "class SaldoInsuficienteError(Exception):\n    pass\n\n\nclass CuentaBancaria:\n    # tu código aquí\n    pass\n",
+      "tests": "c = CuentaBancaria('Ana', 100)\nassert c.saldo == 100\nassert CuentaBancaria('Luis').saldo == 0, \"saldo por defecto\"\nc.depositar(50)\nassert c.saldo == 150\nc.retirar(150)\nassert c.saldo == 0, \"retirar todo es valido\"\nc = CuentaBancaria('Ana', 100)\ntry:\n    c.retirar(101)\nexcept SaldoInsuficienteError:\n    pass\nelse:\n    assert False, \"debia lanzar SaldoInsuficienteError\"\nassert c.saldo == 100, \"el saldo no cambia si falla\"\nassert issubclass(SaldoInsuficienteError, Exception)\nfor malo in (0, -5):\n    try:\n        c.depositar(malo)\n    except ValueError:\n        pass\n    else:\n        assert False, \"depositar monto invalido\"\n    try:\n        c.retirar(malo)\n    except ValueError:\n        pass\n    else:\n        assert False, \"retirar monto invalido\"\nassert str(c) == 'Cuenta de Ana: $100.00'\nassert repr(c) == \"CuentaBancaria('Ana', 100)\"\n",
+      "solucion": "class SaldoInsuficienteError(Exception):\n    pass\n\n\nclass CuentaBancaria:\n    def __init__(self, titular, saldo=0):\n        self.titular = titular\n        self.saldo = saldo\n\n    def depositar(self, monto):\n        if monto <= 0:\n            raise ValueError(\"el monto debe ser positivo\")\n        self.saldo += monto\n\n    def retirar(self, monto):\n        if monto <= 0:\n            raise ValueError(\"el monto debe ser positivo\")\n        if monto > self.saldo:\n            raise SaldoInsuficienteError(f\"saldo {self.saldo}, intento de retirar {monto}\")\n        self.saldo -= monto\n\n    def __str__(self):\n        return f\"Cuenta de {self.titular}: ${self.saldo:.2f}\"\n\n    def __repr__(self):\n        return f\"CuentaBancaria({self.titular!r}, {self.saldo!r})\"\n",
+      "explicacion": "Validar antes de mutar mantiene el objeto consistente. Excepcion propia = mejor semantica que ValueError generico, el llamador puede capturarla de forma especifica. __str__ es para usuarios (print), __repr__ para desarrolladores (consola, listas, depuracion). Operaciones O(1).",
+      "pregunta_entrevistador": "En dinero real, ¿usarias float para el saldo? (No: errores de redondeo; usa decimal.Decimal o enteros en centimos.)"
+    },
+    {
+      "id": "b18",
+      "tipo": "codigo",
+      "titulo": "Herencia: CuentaAhorro",
+      "dificultad": "media",
+      "tema": "clases",
+      "roadmap": "herencia, super(), atributos de clase vs instancia",
+      "enunciado": "Ya tienes `CuentaBancaria` (en la plantilla). Crea la subclase `CuentaAhorro`:\n\n- `__init__(self, titular, saldo=0, tasa=0.05)`: usa `super().__init__` y guarda `tasa` (interes por periodo).\n- `aplicar_interes()`: suma `saldo * tasa` al saldo.\n- Atributo de CLASE `MINIMO = 10`: `retirar` no puede dejar el saldo por debajo de `MINIMO`; si lo haria lanza `SaldoInsuficienteError` (sin cambiar el saldo). Reutiliza el `retirar` del padre con `super().retirar`.\n- `__repr__` propio: `\"CuentaAhorro('Ana', 100, tasa=0.05)\"` (el `__str__` heredado sigue funcionando).\n\nEjemplo: `c = CuentaAhorro('Ana', 100, 0.1); c.aplicar_interes()` -> `c.saldo == 110.0`.",
+      "pistas": [
+        "Para el minimo: antes de delegar, comprueba `self.saldo - monto < self.MINIMO`.",
+        "Usa `self.MINIMO`, no un numero magico: asi una subclase puede cambiarlo.",
+        "Si monto <= 0 deja que lo valide el padre con super().retirar."
+      ],
+      "plantilla": "class SaldoInsuficienteError(Exception):\n    pass\n\n\nclass CuentaBancaria:\n    def __init__(self, titular, saldo=0):\n        self.titular = titular\n        self.saldo = saldo\n\n    def depositar(self, monto):\n        if monto <= 0:\n            raise ValueError(\"el monto debe ser positivo\")\n        self.saldo += monto\n\n    def retirar(self, monto):\n        if monto <= 0:\n            raise ValueError(\"el monto debe ser positivo\")\n        if monto > self.saldo:\n            raise SaldoInsuficienteError(\"saldo insuficiente\")\n        self.saldo -= monto\n\n    def __str__(self):\n        return f\"Cuenta de {self.titular}: ${self.saldo:.2f}\"\n\n    def __repr__(self):\n        return f\"CuentaBancaria({self.titular!r}, {self.saldo!r})\"\n\n\nclass CuentaAhorro(CuentaBancaria):\n    # tu código aquí\n    pass\n",
+      "tests": "c = CuentaAhorro('Ana', 100, 0.1)\nassert isinstance(c, CuentaBancaria)\nc.aplicar_interes()\nassert c.saldo == 110.0\nassert CuentaAhorro('Luis').tasa == 0.05, \"tasa por defecto\"\nassert CuentaAhorro.MINIMO == 10 and 'MINIMO' not in vars(c), \"MINIMO es atributo de clase\"\nc = CuentaAhorro('Ana', 100)\nc.retirar(90)\nassert c.saldo == 10, \"dejar exactamente el minimo es valido\"\ntry:\n    c.retirar(1)\nexcept SaldoInsuficienteError:\n    pass\nelse:\n    assert False, \"no puede quedar por debajo del minimo\"\nassert c.saldo == 10, \"saldo intacto tras fallo\"\nc.depositar(5)\nassert c.saldo == 15, \"metodos heredados\"\ntry:\n    c.retirar(-1)\nexcept ValueError:\n    pass\nelse:\n    assert False, \"monto invalido lo valida el padre\"\nc = CuentaAhorro('Ana', 100)\nassert repr(c) == \"CuentaAhorro('Ana', 100, tasa=0.05)\"\nassert str(c) == 'Cuenta de Ana: $100.00'\n",
+      "solucion": "class SaldoInsuficienteError(Exception):\n    pass\n\n\nclass CuentaBancaria:\n    def __init__(self, titular, saldo=0):\n        self.titular = titular\n        self.saldo = saldo\n\n    def depositar(self, monto):\n        if monto <= 0:\n            raise ValueError(\"el monto debe ser positivo\")\n        self.saldo += monto\n\n    def retirar(self, monto):\n        if monto <= 0:\n            raise ValueError(\"el monto debe ser positivo\")\n        if monto > self.saldo:\n            raise SaldoInsuficienteError(\"saldo insuficiente\")\n        self.saldo -= monto\n\n    def __str__(self):\n        return f\"Cuenta de {self.titular}: ${self.saldo:.2f}\"\n\n    def __repr__(self):\n        return f\"CuentaBancaria({self.titular!r}, {self.saldo!r})\"\n\n\nclass CuentaAhorro(CuentaBancaria):\n    MINIMO = 10\n\n    def __init__(self, titular, saldo=0, tasa=0.05):\n        super().__init__(titular, saldo)\n        self.tasa = tasa\n\n    def aplicar_interes(self):\n        self.saldo += self.saldo * self.tasa\n\n    def retirar(self, monto):\n        if monto > 0 and self.saldo - monto < self.MINIMO:\n            raise SaldoInsuficienteError(f\"el saldo no puede bajar de {self.MINIMO}\")\n        super().retirar(monto)\n\n    def __repr__(self):\n        return f\"CuentaAhorro({self.titular!r}, {self.saldo!r}, tasa={self.tasa!r})\"\n",
+      "explicacion": "super() delega en la clase padre sin repetir codigo. MINIMO vive en la clase (compartido por todas las instancias); tasa vive en cada instancia. Sobrescribir retirar (polimorfismo) añade la regla y reutiliza la validacion del padre. Operaciones O(1).",
+      "pregunta_entrevistador": "Si asigno `c.MINIMO = 50` en una instancia, ¿cambia el de la clase? (No: crea un atributo de instancia que oculta al de clase.)"
+    },
+    {
+      "id": "b19",
+      "tipo": "codigo",
+      "titulo": "Tipos basicos y bool vs int",
+      "dificultad": "facil",
+      "tema": "tipos",
+      "roadmap": "tipos (int, float, str, bool, list, dict, set, tuple, None)",
+      "enunciado": "Escribe `contar_tipos(valores)` que reciba una lista de valores y devuelva un dict `{nombre_del_tipo: cantidad}` usando `type(v).__name__`.\n\nEjemplo: `contar_tipos([1, 2.0, 'a', True, None, [1], (1,), {1}, {'a': 1}, 3])`\n-> `{'int': 2, 'float': 1, 'str': 1, 'bool': 1, 'NoneType': 1, 'list': 1, 'tuple': 1, 'set': 1, 'dict': 1}`\n\nNota: `True` cuenta como `bool`, NO como `int` (bool es subclase de int, asi que `isinstance(True, int)` seria True; `type()` no se confunde).\nCasos borde: lista vacia -> `{}`.",
+      "pistas": [
+        "`type(v).__name__` da el nombre como string.",
+        "Cuenta con `d[nombre] = d.get(nombre, 0) + 1`.",
+        "No uses isinstance(v, int) para distinguir bool."
+      ],
+      "plantilla": "def contar_tipos(valores):\n    pass\n",
+      "tests": "r = contar_tipos([1, 2.0, 'a', True, None, [1], (1,), {1}, {'a': 1}, 3])\nassert r == {'int': 2, 'float': 1, 'str': 1, 'bool': 1, 'NoneType': 1,\n             'list': 1, 'tuple': 1, 'set': 1, 'dict': 1}\nassert contar_tipos([]) == {}, \"vacia\"\nassert contar_tipos([True, False, 1]) == {'bool': 2, 'int': 1}, \"bool no es int\"\nassert contar_tipos([None]) == {'NoneType': 1}\n",
+      "solucion": "def contar_tipos(valores):\n    conteo = {}\n    for v in valores:\n        nombre = type(v).__name__\n        conteo[nombre] = conteo.get(nombre, 0) + 1\n    return conteo\n",
+      "explicacion": "Todo en Python es un objeto con tipo. type() devuelve el tipo exacto; isinstance considera herencia (isinstance(True, int) es True). Mutables: list, dict, set. Inmutables: int, float, str, bool, tuple, None. O(n).",
+      "pregunta_entrevistador": "¿Por que una tupla es hashable y una lista no, y que pasa con una tupla que contiene una lista? (Hashable solo si todo su contenido lo es.)"
+    },
+    {
+      "id": "b20",
+      "tipo": "quiz",
+      "titulo": "¿Que imprime? Mutables vs inmutables",
+      "dificultad": "facil",
+      "tema": "mutables",
+      "roadmap": "Mutables vs inmutables",
+      "enunciado": "a = [1, 2]\nb = a\nb += [3]\ns = \"hi\"\nt = s\nt += \"!\"\nprint(a, s)",
+      "opciones": [
+        "[1, 2] hi",
+        "[1, 2, 3] hi",
+        "[1, 2, 3] hi!",
+        "[1, 2] hi!"
+      ],
+      "correcta": 1,
+      "explicacion": "`b = a` no copia: ambos nombres apuntan a la misma lista, y `+=` en listas muta in-place, asi que `a` cambia. Los strings son inmutables: `t += '!'` crea un string nuevo y `s` no se altera."
+    },
+    {
+      "id": "b21",
+      "tipo": "quiz",
+      "titulo": "¿Que imprime? Default mutable",
+      "dificultad": "media",
+      "tema": "funciones",
+      "roadmap": "trampa del default mutable",
+      "enunciado": "def f(x, l=[]):\n    l.append(x)\n    return l\n\nprint(f(1))\nprint(f(2))",
+      "opciones": [
+        "[1]\n[2]",
+        "[1]\n[1, 2]",
+        "[1, 2]\n[1, 2]",
+        "Error"
+      ],
+      "correcta": 1,
+      "explicacion": "El default `[]` se crea una sola vez al definir la funcion y se reutiliza. La segunda llamada añade a la misma lista. Solucion: `l=None` y crear la lista dentro."
+    },
+    {
+      "id": "b22",
+      "tipo": "quiz",
+      "titulo": "¿Que imprime? append vs extend",
+      "dificultad": "facil",
+      "tema": "listas",
+      "roadmap": "append vs extend",
+      "enunciado": "a = [1]\na.append([2, 3])\na.extend([4, 5])\nprint(a, len(a))",
+      "opciones": [
+        "[1, 2, 3, 4, 5] 5",
+        "[1, [2, 3], 4, 5] 4",
+        "[1, [2, 3], [4, 5]] 3",
+        "[1, [2, 3], 4, 5] 5"
+      ],
+      "correcta": 1,
+      "explicacion": "append añade el objeto completo (la lista [2, 3] como UN elemento); extend añade cada elemento de [4, 5]. Resultado: [1, [2, 3], 4, 5] con len 4."
+    },
+    {
+      "id": "b23",
+      "tipo": "quiz",
+      "titulo": "¿Que imprime? __str__ vs __repr__",
+      "dificultad": "media",
+      "tema": "clases",
+      "roadmap": "__str__ vs __repr__",
+      "enunciado": "class P:\n    def __str__(self):\n        return \"str\"\n    def __repr__(self):\n        return \"repr\"\n\nprint(P())\nprint([P()])",
+      "opciones": [
+        "str\n[str]",
+        "repr\n[repr]",
+        "str\n[repr]",
+        "repr\n[str]"
+      ],
+      "correcta": 2,
+      "explicacion": "print(objeto) usa __str__. Pero al imprimir una lista, sus elementos se muestran con __repr__. Si solo defines __repr__, str() tambien lo usa como respaldo; al reves no."
+    },
+    {
+      "id": "b24",
+      "tipo": "quiz",
+      "titulo": "¿Que imprime? Atributo de clase vs instancia",
+      "dificultad": "media",
+      "tema": "clases",
+      "roadmap": "atributos de clase vs instancia",
+      "enunciado": "class C:\n    n = 0\n    lista = []\n\na = C()\nb = C()\na.n += 1\na.lista.append(1)\nprint(b.n, b.lista, C.n)",
+      "opciones": [
+        "1 [1] 1",
+        "0 [] 0",
+        "0 [1] 0",
+        "1 [] 0"
+      ],
+      "correcta": 2,
+      "explicacion": "`a.n += 1` lee C.n (0) y crea un atributo de INSTANCIA a.n = 1; la clase y `b` siguen con 0. `a.lista.append(1)` no reasigna: muta la lista compartida de la clase, asi que `b.lista` ve [1]."
+    },
+    {
+      "id": "b25",
+      "tipo": "quiz",
+      "titulo": "¿Que imprime? if __name__ == '__main__'",
+      "dificultad": "facil",
+      "tema": "modulos",
+      "roadmap": "if __name__ == \"__main__\"",
+      "enunciado": "# archivo modulo.py\nprint(\"A\")\nif __name__ == \"__main__\":\n    print(\"B\")\n\n# archivo otro.py\nimport modulo\n# ¿Que imprime ejecutar `python otro.py`?",
+      "opciones": [
+        "Nada",
+        "A",
+        "B",
+        "A\nB"
+      ],
+      "correcta": 1,
+      "explicacion": "Al importar, el codigo del modulo se ejecuta (imprime A) pero `__name__` vale 'modulo', no '__main__', asi que B no se imprime. Ejecutando `python modulo.py` directamente imprimiria A y B."
+    }
+  ]
+}
