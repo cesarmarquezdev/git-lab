@@ -1,2 +1,6 @@
+<<<<<<< HEAD
 modo=rapido
 registro=activo
+=======
+modo=seguro
+>>>>>>> feature-b
