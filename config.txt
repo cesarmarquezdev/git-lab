@@ -1,1 +1,2 @@
-modo=normal
+modo=rapido
+registro=activo
